@@ -20,4 +20,40 @@ public final class Constants {
      * station first.
      */
     public static int XBOX_CONTROLLER_PORT = 0;    
+    
+    /**
+     * Conversion factor for Feet to Meters
+     */
+    public static double FEET_TO_METERS = 0.3048;
+    
+    /** 
+     * This value is an assumed maximum speed of the robot in meters per second, which we will use for calculations
+     * Once the robot is built we will measure and update said speed so that it is more accurate
+     */
+    public static double ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND = 13 * FEET_TO_METERS;
+
+
+    
+    /**
+     * Width of the wheel base in meters from the center of one wheel on the left to the center of one wheel on the right
+     */
+    public static double WHEEL_BASE_WIDTH_METERS = 22.5/12 * FEET_TO_METERS;
+
+    /**
+     * Length of the wheel base in meters from the center of one wheel on the back to the center of one wheel on the front
+     */
+    public static double WHEEL_BASE_LENGTH_METERS = 22.5/12 * FEET_TO_METERS;
+
+    private static double WHEEL_BASE_DIAGONAL_METERS = 
+        Math.sqrt(WHEEL_BASE_WIDTH_METERS * WHEEL_BASE_WIDTH_METERS +
+                  WHEEL_BASE_LENGTH_METERS * WHEEL_BASE_LENGTH_METERS);
+
+    /**
+     * Robot's maximum rotational velocity in radians per second
+     * Value is guessed and needs to be measured
+     * 
+     * Formula is derived from the robots linear speed divided by the circumference of the circumscribed circle created by the wheel base rectangle
+     */
+    public static double ROBOT_MAXIMUM_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 
+        (2 * Math.PI) * (ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND/(Math.PI * WHEEL_BASE_DIAGONAL_METERS));
 }
