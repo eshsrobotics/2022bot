@@ -34,6 +34,8 @@ its front side facing away from the driver.__
 1. Back right pivot motor (Brushless NEO @ Spark MAX)
 1. Front right pivot motor (Brushless NEO @ Spark MAX)
 
+### PWM ports ###
+
 ## Subsystems ##
 ### Drive ###
 [As the team
@@ -87,6 +89,57 @@ Limelight vision camera.
    making it a **dependent variable**.
 
 #### Shooting algorithm ####
+
+- **Independent variables.**  There is one under consideration and a few
+   others that we are ignoring:
+
+    1. **Distance (d):** The diagonal distance from the Limelight camera to the
+       center of the vision target.  The units don't actually matter.
+    1. ~~Height: The distance from the Limelight camera to the ground plane.~~
+
+        Always assumed to be constant.
+    1. ~~Azimuth: The horizontal deviation in degrees from the center of the target.~~
+
+        Because the shooter subsystem is always supposed to aim at the center of
+        the vision solution, we can assume that this is a constant with a value
+        of 0.0.
+
+- **Dependent variables.**  These variables must be expressed as functions of
+  the independent variables, and are directly related to the ball trajectory.
+  We have two variables under consideration and one that we are ignoring.
+
+    1. **Bottom flywheel speed (s)**: The voltage to apply to the bottom flywheel.
+
+        This controls the strength of the shot, and is achieved by
+        compressing the cargo within the shooter.
+
+    1. **Hood angle (θ)**: The amount by which the hood curls over the ball.
+
+        This controls the steepness of the shot's trajectory.
+
+    1. ~~Top flywheel speed: The voltage to apply to the top flywheel~~.
+
+        We plan to always make this a multiple of the bottom flywheel's speed, so
+        it does not need to be considered in our model.
+
+So our goal is to determine the two equations
+```
+    s = F(d)
+    θ = G(d)
+```
+which correctly launch the ball into the target from the given shooting distance `d`.
+
+#### Gathering data ####
+
+To gather enough data to solve the unknown equations for the independent
+variables, we need to position the robot (really, position the *Limelight*) at
+fixed distances and heights and then attempt to find a flywheel speed and hood
+angle that will reliably sink the shot.  The indexer should only release the
+ball to the shooter once the flywheel has accelerated to the correct speed.
+
+At the time of writing, we do not know what the relationship between the
+distance and the independent variables is, other than that we predict that the
+functions will monotonically increase as the distance increases.
 
 ### Intake ###
 ![Drive and intake subsystems, including roller positions but without intake motors](docs/2022-01-17-frc-chassis.png)
