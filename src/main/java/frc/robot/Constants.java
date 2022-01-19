@@ -27,9 +27,69 @@ public final class Constants {
      * "counterclockwise around the car", starting with the "driver's seat."
      */
     public static final int FRONT_LEFT = 0;
+
+    /**
+     * @see #FRONT_LEFT
+     */
     public static final int BACK_LEFT = 1;
+
+    /**
+     * @see #FRONT_LEFT
+     */
     public static final int BACK_RIGHT = 2;
+
+    /**
+     * @see #FRONT_LEFT
+     */
     public static final int FRONT_RIGHT = 3;
+
+    ///////////////////
+    // Driving ports //
+    ///////////////////
+
+    /**
+     * The CAN bus ID for the motor controller which drives the front left wheel.
+     */
+    public static final int FRONT_LEFT_DRIVE_MOTOR_CAN_ID = FRONT_LEFT + 1;
+
+    /**
+     * The CAN bus ID for the motor controller which drives the back left wheel.
+     */
+    public static final int BACK_LEFT_DRIVE_MOTOR_CAN_ID = BACK_LEFT + 1;
+
+    /**
+     * The CAN bus ID for the motor controller which drives the back right wheel.
+     */
+    public static final int BACK_RIGHT_DRIVE_MOTOR_CAN_ID = BACK_RIGHT + 1;
+
+    /**
+     * The CAN bus ID for the motor controller which drives the front right wheel.
+     */
+    public static final int FRONT_RIGHT_DRIVE_MOTOR_CAN_ID = FRONT_RIGHT + 1;
+
+    /////////////////
+    // Pivot ports //
+    /////////////////
+
+    /**
+     * The CAN bus ID for the motor controller which pivots the front left wheel.
+     */
+    public static final int FRONT_LEFT_TURN_MOTOR_CAN_ID = FRONT_LEFT + 5;
+
+    /**
+     * The CAN bus ID for the motor controller which pivots the back left wheel.
+     */
+    public static final int BACK_LEFT_TURN_MOTOR_CAN_ID = BACK_LEFT + 5;
+
+    /**
+     * The CAN bus ID for the motor controller which pivots the back right wheel.
+     */
+    public static final int BACK_RIGHT_TURN_MOTOR_CAN_ID = BACK_RIGHT + 5;
+
+    /**
+     * The CAN bus ID for the motor controller which pivots the front right wheel.
+     */
+    public static final int FRONT_RIGHT_TURN_MOTOR_CAN_ID = FRONT_RIGHT + 5;
 
     /**
      * We need to make an assumption on where the Xbox controllers are plugged in.
