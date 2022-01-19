@@ -1,7 +1,9 @@
 # 2022bot
-Source code for the ESHS Robotics 2022 FRC competition robot.
+Source code for the ESHS Robotics 2022 FRC Rapid React competition robot.
 
-This file contains motor and port assignments, the robot's control scheme, and technical discussion about its various subsystems.
+The robot's tentative name is **TATR** (The Articulated Turret Robot.)
+
+This file contains [motor and port assignments](#motor-and-port-assignments), the robot's [control scheme](#control-scheme), and technical discussion about its various [subsystems](#subsystems).
 
 ## Control scheme ##
 
@@ -20,20 +22,30 @@ its front side facing away from the driver.__
      2. Vertical channel: _Unused_
 
 ## Motor and port assignments ##
+
+### CAN bus IDs ###
+
+1. Front left drive motor (Brushless NEO @ Spark MAX)
+1. Back left drive motor (Brushless NEO @ Spark MAX)
+1. Back right drive motor (Brushless NEO @ Spark MAX)
+1. Front right drive motor (Brushless NEO @ Spark MAX)
+1. Front left pivot motor (Brushless NEO @ Spark MAX)
+1. Back left pivot motor (Brushless NEO @ Spark MAX)
+1. Back right pivot motor (Brushless NEO @ Spark MAX)
+1. Front right pivot motor (Brushless NEO @ Spark MAX)
+
 ## Subsystems ##
-### Input ###
 ### Drive ###
 [As the team
 did](https://github.com/eshsrobotics/2020bot/blob/master/src/main/java/frc/robot/subsystems/NewWheelDriveSubsystem.java)
 for the 2019-2020 and 2020-2021 seasons, this year's robot will employ a
 swerve drive using MK3 modules from Swerve Drive Specialties.  Eight brushless
-NEO motors control the swerve modules.  They are daisy-chained in a CAN bus
-using the following CAN IDs:
-
-
+NEO motors control the swerve modules; their Spark MAX motor controllers are
+daisy-chained in a CAN bus, allowingh us to use the CANSparkMAX [CANEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/canencoder)
+class to access the default encoders for the pivot wheels' motor controllers.
 
 ### Shooter ###
-
+![Shooter subsystem, without hood motors or upper flywheel](docs/2022-01-17-frc-shooter.png)
 The shooter's purpose is to sink balls into the circular goal.  The goal is
 ringed with reflective tape, and the center of that formation of reflective
 quadrilaterals represents a **vision solution** that we can target with the
@@ -41,22 +53,54 @@ Limelight vision camera.
 
 #### Shooter components ####
 
-The shooter consists of a circular opening with a bottom flywheel adjacent to
-it.  A hood behind the opening can be adjusted to fine-tune the trajectory of
-the parabolic arc the launched cargo will travel in.
+1. **Limelight.**  The Limelight is a versatile and easy-to-configure camera
+   with built-in LED headlights designed to quickly identify reflective tape
+   targets.  Once identified, it asynchronously calculates five parameters and
+   returns them to the rest of the robot code via `NetworkTables`:
+    - `tv`: Whether the Limelight has any valid targets; 0 or 1.
+    - `tx`: Horizontal offset from crosshair to target; ranges from -27.0° to
+      27.0°.
+    - `ty`: Vertical offset from crosshair to target; ranges from -20.5° to
+      20.5°.
+    - `ta`: Target area in terms of percentage of the image.  Ranges from 0.0
+      to 1.0.
+    - `ts`: Target skew or rotation.  Ranges from -90.0° to 0.0°.
 
-The goal in the competition field contains a rotating agitator in the center.
-If you are thinking of the agitators that you would see in washing machines,
-you are not far off the mark (except this one is larger and allows balls to
-slip through.)  The agitator seems specifically designed to thwart attempts to
-sink cargo in using high parabolic arcs with a lot of topspin, which is
-typical for flywheel-based shooters.
+    From these values, we can use trigonometry to obtain the **solution
+    distance**, and then feed that parameter into the [shooting
+    algorithm](#shooting-algorithm).
+2. **Flywheels and hood.** The shooter consists of a circular opening with a
+   bottom flywheel adjacent to it.  A hood behind the opening can be adjusted
+   to fine-tune the trajectory of the parabolic arc the launched cargo will
+   travel in.
 
-In response, we added a second, rear flywheel to the design on 2022-01-19 to
-reduce the topspin of the ball.  To simplify the resulting equations, the top
-flywheel's speed is defined solely by the bottom flywheel's speed, making it a
-**dependent variable**.
+   The goal in the competition field contains a rotating agitator in the
+   center.  If you are thinking of the agitators that you would see in washing
+   machines, you are not far off the mark (except this one is larger and
+   allows balls to slip through.)  The agitator seems specifically designed to
+   thwart attempts to sink cargo in using high parabolic arcs with a lot of
+   topspin, which is typical for flywheel-based shooters.
 
-#### Shooting solution ####
+   In response, we added a second, rear flywheel to the design on 2022-01-19
+   to reduce the topspin of the ball.  To simplify the resulting equations,
+   the top flywheel's speed is defined solely by the bottom flywheel's speed,
+   making it a **dependent variable**.
+
+#### Shooting algorithm ####
 
 ### Intake ###
+![Drive and intake subsystems, including roller positions but without intake motors](docs/2022-01-17-frc-chassis.png)
+
+The intake subsystem is roughly divided into two parts:
+
+1. The intake rollers, which use 3D-printed miniature Mecanum wheels to
+direct any cargo placed beneath them to the maw of the chassis; and
+2. The *indexer*, which is the portion of the intake that can suspend a ball
+   until the human driver decides to release it to the [shooter](#shooter).
+
+For the intake rollers to work properly, cargo must be trapped in front of the
+robot and pressed beneath the rollers so that they roll along the front
+bumpers toward the front center.  The intake rollers can be reversed to
+*reject* a ball that is of the wrong color; to automate this process, a color
+sensor is positioned beneath the top of the intake to ascertain the color of
+the ball.
