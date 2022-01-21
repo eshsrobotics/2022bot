@@ -84,14 +84,12 @@ Limelight vision camera.
    topspin, which is typical for flywheel-based shooters.
 
    In response, we added a second, rear flywheel to the design on 2022-01-19
-   to reduce the topspin of the ball.  To simplify the resulting equations,
-   the top flywheel's speed is defined solely by the bottom flywheel's speed,
-   making it a **dependent variable**.
+   to reduce the topspin of the ball.
 
 #### Shooting algorithm ####
 
-- **Independent variables.**  There is one under consideration and a few
-   others that we are ignoring:
+- **Independent variables (inputs).**  There is one under consideration and a
+   few others that we are ignoring:
 
     1. **Distance (d):** The diagonal distance from the Limelight camera to the
        center of the vision target.  The units don't actually matter.
@@ -104,9 +102,10 @@ Limelight vision camera.
         the vision solution, we can assume that this is a constant with a value
         of 0.0.
 
-- **Dependent variables.**  These variables must be expressed as functions of
-  the independent variables, and are directly related to the ball trajectory.
-  We have two variables under consideration and one that we are ignoring.
+- **Dependent variables (outputs).**  These variables must be expressed as
+  functions of the independent variables, and are directly related to the ball
+  trajectory.  We have two variables under consideration and one that we are
+  ignoring.
 
     1. **Bottom flywheel speed (s)**: The voltage to apply to the bottom flywheel.
 
@@ -119,19 +118,19 @@ Limelight vision camera.
 
     1. ~~Top flywheel speed: The voltage to apply to the top flywheel~~.
 
-        We plan to always make this a multiple of the bottom flywheel's speed, so
-        it does not need to be considered in our model.
+        Reduces topspin.  We plan to always make this a multiple of the bottom
+        flywheel's speed, so it does not need to be considered in our model.
 
-So our goal is to determine the two equations
+So our goal is to determine the two equations *F* and *G* so that
 ```
     s = F(d)
     θ = G(d)
 ```
-which correctly launch the ball into the target from the given shooting distance `d`.
+will correctly launch the ball into the target from the given shooting distance `d`.
 
 #### Gathering data ####
 
-To gather enough data to solve the unknown equations for the independent
+To gather enough data to solve the unknown equations for the dependent
 variables, we need to position the robot (really, position the *Limelight*) at
 fixed distances and heights and then attempt to find a flywheel speed and hood
 angle that will reliably sink the shot.  The indexer should only release the
