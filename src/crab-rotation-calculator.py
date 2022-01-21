@@ -4,6 +4,7 @@ import sys
 import math
 import argparse
 
+from enum import Enum
 from typing import List, NamedTuple, Optional, IO, Tuple
 
 FRONT_LEFT: int = 0
@@ -19,6 +20,21 @@ S: int = 0x10
 SW: int = 0x20
 W: int = 0x40
 NW: int = 0x80
+
+
+class OverwriteBehavior(Enum):
+    """
+    What to do when a character from a primitive we are trying to draw is in
+    the same place as an existing character on a grid.  The choices are:
+
+    - ALWAYS: Render our character, overwriting the existing character.
+    - MERGE: Look at the existing neighbors and render a character that
+             appears to connect to them.
+    - NEVER: Take no action (that is, ignore our character.)
+    """
+    ALWAYS = 1
+    MERGE = 2
+    NEVER = 3
 
 """
 Multiplying a degree value by this constant returns its equivalent value
@@ -48,12 +64,27 @@ program calculates."""
         self._width: int = width
         self._height: int = height
         self._table: Optional[List[int]] = None
+        self._overwrite: OverwriteBehavior = OverwriteBehavior.ALWAYS
 
     @property
     def width(self): return self._width
 
     @property
     def height(self): return self._height
+
+    @property
+    def overwrite(self):
+        """Returns the canvas's current overwrite policy."""
+        return self._overwrite
+
+    @overwrite.setter
+    def overwrite(self, value: OverwriteBehavior):
+        """
+        Changes the overwrite policy for any new primitives that are rendered
+        onto the canvas (the draw_* functions.  Note that set_pixel() is not
+        affected.)
+        """
+        self._overwrite = value
 
     def print(self, stream: IO[str] = sys.stdout):
         """
@@ -151,6 +182,37 @@ program calculates."""
             neighbor_mask |= mask
 
         return neighbor_mask
+
+    def _is_occupied(self, grid: List[int], x: int, y: int,
+                     exclude: str = " ", include: str = "") -> bool:
+        """
+        A helper function that extends the notion of adjacent neighbors in
+        order to tell if a given position itself is occupied.
+
+        - grid: An integer array with as many elements in it as self_grid.
+        - x: The X coordinate of the 'pixel' to examine.
+        - y: The Y coordinate of the 'pixel' to examine.
+        - exclude: A grid cell that matches a character from this string
+                   is considered to be unoccupied.  By default, this is a
+                   blank space.
+        - include: If this string is non-empty, only grid cells matching a
+                   character from this string are considered to be occupied.
+                   By default, this is empty.  The exclude argument takes
+                   precedence if a character is present in both.
+
+        Returns:
+          Returns True if the position is occupied and False if it is not.
+          Positions out of bounds are always considered unoccupied.
+        """
+        if x >= self._width or x < 0 or y >= self._height or y < 0:
+            return False
+
+        c: str = self._get_pixel(grid, x, y)
+        if c in exclude or (include != "" and c not in include):
+            # No occupied cell at this position.
+            return False
+
+        return True
 
     def set_pixel(self, x: float, y: float, neighbor_mask: int = 0):
         """
@@ -447,7 +509,8 @@ program calculates."""
         self._set_pixel(self._grid, px, py, self._table[neighbor_mask & 0xFF])
 
     def draw_ellipse(self, center_x: float, center_y: float,
-                     radius_x: float, radius_y: float):
+                     radius_x: float, radius_y: float,
+                     overwrite: OverwriteBehavior = OverwriteBehavior.ALWAYS):
         """
         Renders an axis-aligned ellipse onto the ASCII canvas.
 
@@ -513,6 +576,8 @@ program calculates."""
         # Render in two passes: a first pass just to set the character cells,
         # and a second pass to set them based on their observed connectivity.
         grid_copy: List[int] = [ord(' ')] * self._width * self._height
+        exclude: str = " "
+        include: str = ""
         for index in range(len(points)):
             x: int = int(points[index][0] + 0.5)
             y: int = int(points[index][1] + 0.5)
@@ -525,7 +590,18 @@ program calculates."""
             y: int = int(points[index][1] + 0.5)
             if x >= self._width or x < 0 or y >= self._height or y < 0:
                 continue
-            self.set_pixel(x, y, self._get_neighbor_mask(grid_copy, x, y))
+            neighbor_mask: int = \
+                self._get_neighbor_mask(grid_copy, x, y, exclude, include)
+
+            if self._overwrite == OverwriteBehavior.ALWAYS:
+                self.set_pixel(x, y, neighbor_mask)
+            elif self._overwrite == OverwriteBehavior.NEVER:
+                if not self._is_occupied(self._grid, x, y, exclude, include):
+                    self.set_pixel(x, y, neighbor_mask)
+            else:  # self._overwrite == OverwriteBehavior.MERGE
+                neighbor_mask |= \
+                    self._get_neighbor_mask(self._grid, x, y, exclude, include)
+                self.set_pixel(x, y, neighbor_mask)
 
 
 class Vector(NamedTuple):
@@ -652,4 +728,9 @@ if __name__ == "__main__":
                       grid.height / 2,
                       grid.width * 0.4,
                       grid.height * 0.4)
+    grid.overwrite = OverwriteBehavior.MERGE
+    grid.draw_ellipse(grid.width * 0.75,
+                      grid.height * 0.25,
+                      grid.width * 0.3,
+                      grid.height * 0.3)
     grid.print()
