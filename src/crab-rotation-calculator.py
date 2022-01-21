@@ -97,6 +97,61 @@ program calculates."""
         """
         return chr(grid[self._width * y + x])
 
+    def _get_neighbor_mask(self, grid: List[int], x: int, y: int,
+                           exclude: str = " ", include: str = "") -> int:
+        """
+        A helper function that simplifies the process of obtaining a 'neighbor
+        mask' (that is to say, a group of ORed bitflags representing the
+        presence or absence of interesting neighbors.)
+
+        Arguments:
+        - grid: An integer array with as many elements in it as self_grid.
+        - x: The X coordinate of the 'pixel' to examine.
+        - y: The Y coordinate of the 'pixel' to examine.
+        - exclude: Any adjacent cell that matches a character from this string
+                   is not considered to be a neighbor.  By default, this is a
+                   blank space, so adjacent characters that are not
+                   blank spaces will become part of the neighbor mask.
+        - include: If this string is non-empty, only adjacent cells that match
+                   a character from this string are considered to be a
+                   neighbor.  By default, this is empty.  The exclude argument
+                   takes precedence if a character is present in both.
+
+        Returns:
+          Returns an integer between 0 and 255 representing the presence or
+          absence of all eight surrounding neighbors.
+
+          Limitations: coordinates that are out of bounds will always return
+          0.  There are never neighbors beyond the edge of the grid.
+        """
+        neighbor_mask: int = 0x00
+        mask_data = [
+            (W, x - 1, y),
+            (NW, x - 1, y - 1),
+            (SW, x - 1, y + 1),
+            (E, x + 1, y),
+            (NE, x + 1, y - 1),
+            (SE, x + 1, y + 1),
+            (N, x, y - 1),
+            (S, x, y + 1),
+        ]
+        for i in range(len(mask_data)):
+            mask: int = mask_data[i][0]
+            current_x: int = mask_data[i][1]
+            current_y: int = mask_data[i][2]
+            if current_x >= self._width or current_x < 0 or \
+               current_y >= self._height or current_y < 0:
+                continue
+
+            c: str = self._get_pixel(grid, current_x, current_y)
+
+            if c in exclude or (include != "" and c not in include):
+                # No neighbor at this position.
+                continue
+            neighbor_mask |= mask
+
+        return neighbor_mask
+
     def set_pixel(self, x: float, y: float, neighbor_mask: int = 0):
         """
         My crude attempt at setting a connected 'pixel' on an ASCII grid.
@@ -459,37 +514,18 @@ program calculates."""
         # and a second pass to set them based on their observed connectivity.
         grid_copy: List[int] = [ord(' ')] * self._width * self._height
         for index in range(len(points)):
-            x: int = round(points[index][0])
-            y: int = round(points[index][1])
+            x: int = int(points[index][0] + 0.5)
+            y: int = int(points[index][1] + 0.5)
             if x >= self._width or x < 0 or y >= self._height or y < 0:
                 continue
             self._set_pixel(grid_copy, x, y, '*')
 
         for index in range(len(points)):
-            neighbor_mask: int = 0x00
-            x: int = round(points[index][0])
-            y: int = round(points[index][1])
+            x: int = int(points[index][0] + 0.5)
+            y: int = int(points[index][1] + 0.5)
             if x >= self._width or x < 0 or y >= self._height or y < 0:
                 continue
-
-            if x > 0:
-                neighbor_mask |= (W if self._get_pixel(grid_copy, x - 1, y) != ' ' else 0)
-                if y > 0:
-                    neighbor_mask |= (NW if self._get_pixel(grid_copy, x - 1, y - 1) != ' ' else 0)
-                if y < self._height - 1:
-                    neighbor_mask |= (SW if self._get_pixel(grid_copy, x - 1, y + 1) != ' ' else 0)
-            if x < self._width - 1:
-                neighbor_mask |= (E if self._get_pixel(grid_copy, x + 1, y) != ' ' else 0)
-                if y > 0:
-                    neighbor_mask |= (NE if self._get_pixel(grid_copy, x + 1, y - 1) != ' ' else 0)
-                if y < self._height - 1:
-                    neighbor_mask |= (SE if self._get_pixel(grid_copy, x + 1, y + 1) != ' ' else 0)
-            if y > 0:
-                neighbor_mask |= (N if self._get_pixel(grid_copy, x, y - 1) != ' ' else 0)
-            if y < self._height - 1:
-                neighbor_mask |= (S if self._get_pixel(grid_copy, x, y + 1) != ' ' else 0)
-
-            self.set_pixel(x, y, neighbor_mask)
+            self.set_pixel(x, y, self._get_neighbor_mask(grid_copy, x, y))
 
 
 class Vector(NamedTuple):
@@ -611,7 +647,7 @@ if __name__ == "__main__":
         degrees = [angle * RADIANS_TO_DEGREES for angle in thetas]
         print(f"Thetas: Front left = {degrees[FRONT_LEFT]:.3f}°, Front right = {degrees[FRONT_RIGHT]:.3f}°, Back left = {degrees[BACK_LEFT]:.3f}°, Back right = {degrees[BACK_RIGHT]:.3f}°,")
 
-    grid = AsciiCanvas(40, 20)
+    grid = AsciiCanvas(79, 25)
     grid.draw_ellipse(grid.width / 2,
                       grid.height / 2,
                       grid.width * 0.4,
