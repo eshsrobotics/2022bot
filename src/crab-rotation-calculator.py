@@ -7,6 +7,13 @@ import argparse
 from enum import Enum
 from typing import List, NamedTuple, Optional, IO, Tuple
 
+
+class Vector(NamedTuple):
+    """A very simple 2D vector."""
+    x: float
+    y: float
+
+
 FRONT_LEFT: int = 0
 BACK_LEFT: int = 1
 BACK_RIGHT: int = 2
@@ -156,6 +163,9 @@ program calculates."""
           0.  There are never neighbors beyond the edge of the grid.
         """
         neighbor_mask: int = 0x00
+        if exclude == "" and include == "":
+            return neighbor_mask
+
         mask_data = [
             (W, x - 1, y),
             (NW, x - 1, y - 1),
@@ -213,6 +223,58 @@ program calculates."""
             return False
 
         return True
+
+    def overwrite_pixel(self, x: float, y: float, neighbor_mask: int = 0,
+                        background: str = " ", foreground: str = ""):
+        """
+        This function (which is largely a helper function for drawing graphics
+        primitives) works like set_pixel() except that it pays attention to
+        the current value of the canvas's overwrite property.
+
+        * If self.overwrite is ALWAYS, this function is equivalent to
+          set_pixel().
+        * If self.overwrite is NEVER, this function will only set pixels on
+          unoccupied grid cells (with the exclude and include arguments
+          controlling what characters are considered occupied.)
+        * If self.overwrite is MERGE, this function will compute the existing
+          neighbor_mask on the grid cell at (x, y) and OR it with the
+          neighbor_mask argument, then it will call set_pixel() with that.
+
+          I found this useful for a single use case: drawing a primitive onto
+          some other empty grid before drawing to the main one.  The existing
+          grid will have its own neighbor_mask that you can combine with the
+          neighbor_mask on the main grid so that the primitive will look
+          correctly 'connected' to the main grid when superimposed.
+
+        Arguments:
+        - x: The X coordinate of the pixel.  Fractional values are rounded
+             (for now.)
+        - y: The Y coordinate of the pixel.  Fractional values are rounded
+             (again, for now.)
+        - neighbor_mask: A bitmask indicating the desired connectivity of the
+                         neighbors for this pixel.
+        - background: Any grid cell that matches a character from this string
+                      is not considered occupied.  By default, this is a
+                      blank space.
+        - foreground: If this string is non-empty, only cells that match a
+                      character from this string are considered to be
+                      occupied.  neighbor.  By default, this is empty.  The
+                      exclude argument takes precedence if a character is
+                      present in both.
+
+                      Having a non-empty foreground string that doesn't match
+                      any characters that are already on the grid is
+                      equivalent to having self.overwrite == ALWAYS.
+        """
+        if self._overwrite == OverwriteBehavior.ALWAYS:
+            self.set_pixel(x, y, neighbor_mask)
+        elif self._overwrite == OverwriteBehavior.NEVER:
+            if not self._is_occupied(self._grid, x, y, background, foreground):
+                self.set_pixel(x, y, neighbor_mask)
+        else:  # self._overwrite == OverwriteBehavior.MERGE
+            neighbor_mask |= \
+                self._get_neighbor_mask(self._grid, x, y, background, foreground)
+            self.set_pixel(x, y, neighbor_mask)
 
     def set_pixel(self, x: float, y: float, neighbor_mask: int = 0):
         """
@@ -508,11 +570,44 @@ program calculates."""
             return
         self._set_pixel(self._grid, px, py, self._table[neighbor_mask & 0xFF])
 
-    def draw_ellipse(self, center_x: float, center_y: float,
-                     radius_x: float, radius_y: float,
-                     overwrite: OverwriteBehavior = OverwriteBehavior.ALWAYS):
+    def _draw_primitive(self, points: List[Tuple[int, int]],
+                        exclude: str = " ", include: str = ""):
         """
-        Renders an axis-aligned ellipse onto the ASCII canvas.
+        Helper function for draw_*().
+
+        Once you have generated a list of points for a particular rendering
+        primitive, you can call this function to draw those points to the
+        canvas.  It employs a 2-pass algorithm so that the initial characters
+        are laid down on the first pass and the actual connectivity-sensitive
+        characters are laid down on the second pass using
+        self.overwrite_pixel().
+        """
+        grid_copy: List[int] = [ord(' ')] * self._width * self._height
+        exclude: str = " "
+        include: str = ""
+        for index in range(len(points)):
+            x: int = int(points[index][0] + 0.5)
+            y: int = int(points[index][1] + 0.5)
+            if x >= self._width or x < 0 or y >= self._height or y < 0:
+                continue
+            self._set_pixel(grid_copy, x, y, '*')
+
+        for index in range(len(points)):
+            x: int = int(points[index][0] + 0.5)
+            y: int = int(points[index][1] + 0.5)
+            if x >= self._width or x < 0 or y >= self._height or y < 0:
+                continue
+            neighbor_mask: int = \
+                self._get_neighbor_mask(grid_copy, x, y, exclude, include)
+
+            self.overwrite_pixel(x, y, neighbor_mask,
+                                 background=exclude, foreground=include)
+
+    def draw_ellipse(self, center_x: float, center_y: float,
+                     radius_x: float, radius_y: float):
+        """
+        Renders an axis-aligned ellipse onto the ASCII canvas.  The ellipse
+        can be partially off-screen.
 
         Stolen, without shame, from
         https://www.geeksforgeeks.org/midpoint-ellipse-drawing-algorithm/.  I
@@ -573,41 +668,143 @@ program calculates."""
                 x += 1
                 dx += 2 * (radius_y ** 2)
 
-        # Render in two passes: a first pass just to set the character cells,
-        # and a second pass to set them based on their observed connectivity.
-        grid_copy: List[int] = [ord(' ')] * self._width * self._height
         exclude: str = " "
         include: str = ""
-        for index in range(len(points)):
-            x: int = int(points[index][0] + 0.5)
-            y: int = int(points[index][1] + 0.5)
-            if x >= self._width or x < 0 or y >= self._height or y < 0:
-                continue
-            self._set_pixel(grid_copy, x, y, '*')
+        self._draw_primitive(points, exclude, include)
 
-        for index in range(len(points)):
-            x: int = int(points[index][0] + 0.5)
-            y: int = int(points[index][1] + 0.5)
-            if x >= self._width or x < 0 or y >= self._height or y < 0:
-                continue
-            neighbor_mask: int = \
-                self._get_neighbor_mask(grid_copy, x, y, exclude, include)
+    def draw_line(self, start_x: float, start_y: float,
+                  end_x: float, end_y: float):
+        """
+        Draws a straight line that goes through the given coordinates.  The
+        line can be partially off-screen.
 
-            if self._overwrite == OverwriteBehavior.ALWAYS:
-                self.set_pixel(x, y, neighbor_mask)
-            elif self._overwrite == OverwriteBehavior.NEVER:
-                if not self._is_occupied(self._grid, x, y, exclude, include):
-                    self.set_pixel(x, y, neighbor_mask)
-            else:  # self._overwrite == OverwriteBehavior.MERGE
-                neighbor_mask |= \
-                    self._get_neighbor_mask(self._grid, x, y, exclude, include)
-                self.set_pixel(x, y, neighbor_mask)
+        Shamelessly stolen from
+        https://en.wikipedia.org/wiki/Bresenham's_line_algorithm.  I am
+        calling the version that works for all octants, though it is now
+        always guaranteed from draw starting from (x1, y1) (which I don't care
+        about.)
+
+        Arguments:
+        - start_x: The X coordinate of the line's first endpoint.
+        - start_y: The Y coordinate of the line's first endpoint.
+        - end_x: The X coordinate of the line's second endpoint.
+        - end_y: The Y coordinate of the line's second endpoint.
+        """
+
+        x1: int = int(start_x + 0.5)
+        y1: int = int(start_y + 0.5)
+        x2: int = int(end_x + 0.5)
+        y2: int = int(end_y + 0.5)
+
+        points: List[Tuple[int, int]] = []
+
+        dx: int = abs(x2 - x1)
+        sx: int = 1 if x1 < x2 else -1
+        dy: int = -abs(y2 - y1)
+        sy: int = 1 if y1 < y2 else -1
+        error: int = dx + dy
+
+        x: int = x1
+        y: int = y1
+        while True:
+            points.append((x, y))
+            if x == x2 and y == y2:
+                break
+            e2: int = 2 * error
+            if e2 >= dy:
+                error += dy
+                x += sx
+            if e2 <= dx:
+                error += dx
+                y += sy
+
+        exclude: str = " "
+        include: str = ""
+        self._draw_primitive(points, exclude, include)
+
+    def draw_rect(self, x1: float, y1: float, x2: float, y2: float):
+        """
+        Draws an axis-aligned rectangle in the most straightforward way.
+
+        Arguments:
+        - x1: The X coordinate of the first corner.
+        - y1: The Y coordinate of the first corner.
+        - x2: The X coordinate of the second corner.
+        - y2: The y coordinate of the second corner.
+        """
+
+        x1: int = int(x1 + 0.5)
+        y1: int = int(y1 + 0.5)
+        x2: int = int(x2 + 0.5)
+        y2: int = int(y2 + 0.5)
+        sx: int = 1 if x1 < x2 else -1
+        sy: int = 1 if y1 < y2 else -1
+
+        points: List[Tuple[int, int]] = []
+
+        for x in range(x1, x2 + sx, sx):
+            points.append((x, y1))
+            points.append((x, y2))
+        for y in range(y1 + sy, y2, sy):
+            points.append((x1, y))
+            points.append((x2, y))
+
+        exclude: str = " "
+        include: str = ""
+        self._draw_primitive(points, exclude, include)
+
+    def draw_rotated_rect(self, x1: float, y1: float, x2: float, y2: float,
+                          width: float):
+        """
+        Draws an oriented bounding box (for an axis-aligned one, see
+        draw_rect().)
+
+        Arguments:
+        - x1: The X coordinate of the front center of the rectangle (the
+              midpoint of its leading edge.)
+        - y1: The Y coordinate of the front center of the rectangle.
+        - x2: The X coordinate of the rear center of the rectangle (the
+              midpoint of its trailing edge.)
+        - y2: The Y coordinate of the rear center of the rectangle.
+        - width: The width of the rectangle in characters.  A width of 0
+                 should produce a narrow line from (x1, y1) to (x2, y2).
+        """
+        points: List[Tuple[int, int]] = []
+        main_axis_length: float = math.dist((x1, y1), (x2, y2))
+
+        if main_axis_length == 0:
+            # Degenerate rectangle.
+            points.append((int(x1 + 0.5), int(y1 + 0.5)))
+        else:
+            main_axis_normalized: Tuple[float, float] = \
+                ((x2 - x1) / main_axis_length, (y2 - y1) / main_axis_length)
+
+            cross_axis_normalized: Tuple[float, float] = \
+                (-main_axis_normalized[1], main_axis_normalized[0])
+
+            endpoints: List[Tuple[float, float]] = [
+                (x1 + cross_axis_normalized[0] * width/2, y1 + cross_axis_normalized[1] * width/2),
+                (x1 - cross_axis_normalized[0] * width/2, y1 - cross_axis_normalized[1] * width/2),
+                (x2 - cross_axis_normalized[0] * width/2, y2 - cross_axis_normalized[1] * width/2),
+                (x2 + cross_axis_normalized[0] * width/2, y2 + cross_axis_normalized[1] * width/2)
+            ]
+            for i in range(len(endpoints)):
+                p1: Tuple[float, float] = endpoints[i - 1 if i > 0 else len(endpoints) - 1]
+                p2: Tuple[float, float] = endpoints[i]
+                dx: float = p2[0] - p1[0]
+                dy: float = p2[1] - p1[1]
+                x: float = p1[0]
+                y: float = p1[1]
+                delta: int = int(max(abs(dx), abs(dy)))
+                for j in range(delta):
+                    points.append((int(x + 0.5), int(y + 0.5)))
+                    x += dx / delta
+                    y += dy / delta
 
 
-class Vector(NamedTuple):
-    """A very simple 2D vector."""
-    x: float
-    y: float
+        exclude: str = " "
+        include: str = ""
+        self._draw_primitive(points, exclude, include)
 
 
 def rotate(v: Vector, theta: float) -> Vector:
@@ -724,13 +921,22 @@ if __name__ == "__main__":
         print(f"Thetas: Front left = {degrees[FRONT_LEFT]:.3f}°, Front right = {degrees[FRONT_RIGHT]:.3f}°, Back left = {degrees[BACK_LEFT]:.3f}°, Back right = {degrees[BACK_RIGHT]:.3f}°,")
 
     grid = AsciiCanvas(79, 25)
-    grid.draw_ellipse(grid.width / 2,
-                      grid.height / 2,
-                      grid.width * 0.4,
-                      grid.height * 0.4)
+    # grid.draw_ellipse(grid.width / 2,
+    #                   grid.height / 2,
+    #                   grid.width * 0.4,
+    #                   grid.height * 0.4)
+    # grid.overwrite = OverwriteBehavior.MERGE
+    # grid.draw_ellipse(grid.width * 0.75,
+    #                   grid.height * 0.25,
+    #                   grid.width * 0.3,
+    #                   grid.height * 0.3)
+    #
+    # grid.overwrite = OverwriteBehavior.MERGE
+    # grid.draw_line(grid.width - 1, 10, -10, grid.height - 1)
+
+    grid.overwrite = OverwriteBehavior.NEVER
+    grid.draw_rect(0, 0, grid.width - 1, grid.height - 1)
+
     grid.overwrite = OverwriteBehavior.MERGE
-    grid.draw_ellipse(grid.width * 0.75,
-                      grid.height * 0.25,
-                      grid.width * 0.3,
-                      grid.height * 0.3)
+    grid.draw_rotated_rect(0, 0, 79, 25, 1)
     grid.print()
