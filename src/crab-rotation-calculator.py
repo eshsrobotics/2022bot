@@ -806,6 +806,45 @@ program calculates."""
         include: str = ""
         self._draw_primitive(points, exclude, include)
 
+    def draw_text(self, x: float, y: float, s: str, justify: int = 0):
+        """
+        Draws the given string of text at (x, y).
+
+        Arguments:
+        - x: The X coordinate.  Which character will be at this position is
+             controlled by the justify argument.
+        - y: The Y coordinate.  Which character will be at this position is
+             controlled by the justify argument.
+        - s: The string to render.  Characters beneath will be overwritten
+             unless self.overwrite is NEVER.
+        - justify: Controls where the text is drawn in relation to the
+                   coordinate.  Negative values left-justify (x,y will contain
+                   the first character); positive values right-justify (x,y
+                   will contain the last character), and 0 centers the string.
+        """
+        if justify == 0:
+            # (x, y) will contain the center character of the string.
+            x -= len(s) / 2
+        elif justify > 0:
+            # (x, y) will contain the rightmost character of the string.
+            x -= (len(s) - 1)
+
+        current_x: int = int(x + 0.5)
+        current_y: int = int(y + 0.5)
+
+        exclude = " "
+        include = ""
+        for i in range(len(s)):
+            if current_x < 0 or current_x >= self._width or \
+               current_y < 0 or current_y >= self._height:
+                continue
+            if self.overwrite == OverwriteBehavior.NEVER and \
+               self._is_occupied(self._grid, current_x, current_y,
+                                 exclude, include):
+                continue
+            self._set_pixel(self._grid, current_x, current_y, s[i])
+            current_x += 1
+
 
 def rotate(v: Vector, theta: float) -> Vector:
     """
@@ -844,20 +883,66 @@ def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
             +theta]  # BACK_RIGHT
 
 
+def draw_crab_rotation_diagram(canvas: AsciiCanvas,
+                               width: float, height: float):
+    """
+    Draws an ellipse which circumscribes a rectangle having the aspect ratio of
+    width/height.
+    """
+
+    # How much of the canvas height the rectangle representing the chassis
+    # will take up.
+    HEIGHT_SCALE_FACTOR = 0.7
+    scaled_height: float = HEIGHT_SCALE_FACTOR * canvas.height
+
+    # Height : scaled_height :: width : scaled_width
+    scaled_width: float = scaled_height * width / height
+
+    # Parameshvara's circumradius formula
+    perimeter: float = 2 * (scaled_width + scaled_height)
+    s: float = 0.5 * perimeter
+    a: float = scaled_height
+    b: float = scaled_width
+    c: float = scaled_height
+    d: float = scaled_width
+    numerator: float = (a * b + c * d) * (a * c + b * d) * (a * d + b * c)
+    denominator: float = (s - a) * (s - b) * (s - c) * (s - d)
+    circumradius: float = 0.25 * math.sqrt(numerator / denominator)
+
+    # How much to scale the width of the circumcircle and the rectangle in
+    # order to make them look nicer in ASCII.
+    ELLIPSE_ASPECT_RATIO = 2.0
+
+    center_x: float = canvas.width / 2
+    center_y: float = canvas.height / 2
+
+    canvas.overwrite = OverwriteBehavior.ALWAYS
+    canvas.draw_ellipse(center_x, center_y,
+                        circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
+    canvas.overwrite = OverwriteBehavior.ALWAYS
+    canvas.draw_rect(center_x - scaled_width * ELLIPSE_ASPECT_RATIO / 2,
+                     center_y - scaled_height / 2,
+                     center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2,
+                     center_y + scaled_height / 2)
+
+    canvas.draw_text(center_x, center_y - scaled_height/2 + 1, f"{width}", 0)
+    canvas.draw_text(center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2 - 1,
+                     center_y, f"{height}", 1)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
     Calculates the swerve module angles that will cause a given drive train to
     pivot in place.  It can also calculate the vectors that result from adding
     these rotated vectors to an overall chassis direction.
-    """, usage="%(prog)s [-h] width height [forwardBack leftRight rotation]")
+    """, usage="%(prog)s [-h] width length [forwardBack leftRight rotation]")
 
     mandatory_group = parser.add_argument_group("Mandatory arguments")
-    mandatory_group.add_argument("length",
-                                 type=float,
-                                 help="Length of the chassis.")
     mandatory_group.add_argument("width",
                                  type=float,
                                  help="Width of the chassis.")
+    mandatory_group.add_argument("length",
+                                 type=float,
+                                 help="Length of the chassis.")
 
     joystick_group = parser.add_argument_group("Joystick channels")
     joystick_group.add_argument("forwardBack",
@@ -934,9 +1019,11 @@ if __name__ == "__main__":
     # grid.overwrite = OverwriteBehavior.MERGE
     # grid.draw_line(grid.width - 1, 10, -10, grid.height - 1)
 
-    grid.overwrite = OverwriteBehavior.NEVER
-    grid.draw_rect(0, 0, grid.width - 1, grid.height - 1)
+    # grid.overwrite = OverwriteBehavior.NEVER
+    # grid.draw_rect(0, 0, grid.width - 1, grid.height - 1)
+    #
+    # grid.overwrite = OverwriteBehavior.MERGE
+    # grid.draw_rotated_rect(0, 0, 79, 25, 1)
 
-    grid.overwrite = OverwriteBehavior.MERGE
-    grid.draw_rotated_rect(0, 0, 79, 25, 1)
+    draw_crab_rotation_diagram(grid, args.width, args.length)
     grid.print()
