@@ -29,6 +29,16 @@ W: int = 0x40
 NW: int = 0x80
 
 
+def round_nearest(x: float) -> int:
+    """Returns the argument rounded to the nearest whole number."""
+    if x > 0:
+        return int(x + 0.5)
+    elif x < 0:
+        return int(x - 0.5)
+    else:
+        return 0
+
+
 class OverwriteBehavior(Enum):
     """
     What to do when a character from a primitive we are trying to draw is in
@@ -774,7 +784,7 @@ program calculates."""
 
         if main_axis_length == 0:
             # Degenerate rectangle.
-            points.append((int(x1 + 0.5), int(y1 + 0.5)))
+            points.append(round_nearest(x1), round_nearest(y1))
         else:
             main_axis_normalized: Tuple[float, float] = \
                 ((x2 - x1) / main_axis_length, (y2 - y1) / main_axis_length)
@@ -795,12 +805,11 @@ program calculates."""
                 dy: float = p2[1] - p1[1]
                 x: float = p1[0]
                 y: float = p1[1]
-                delta: int = int(max(abs(dx), abs(dy)))
+                delta: int = round_nearest(max(abs(dx), abs(dy)))
                 for j in range(delta):
-                    points.append((int(x + 0.5), int(y + 0.5)))
+                    points.append((round_nearest(x), round_nearest(y)))
                     x += dx / delta
                     y += dy / delta
-
 
         exclude: str = " "
         include: str = ""
@@ -857,15 +866,6 @@ def rotate(v: Vector, theta: float) -> Vector:
                   v.x * sintheta + v.y * costheta)
 
 
-def normalize(v: Vector) -> Vector:
-    """
-    Returns the unit vector having the same direction as the given vector.
-    Undefined if it is the zero vector.
-    """
-    dist: float = math.dist(Vector(0, 0), v)
-    return Vector(v.x / dist, v.y / dist)
-
-
 def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
     """
     Calculates the rotation angles that the four swerve modules of a swerve
@@ -875,20 +875,58 @@ def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
     All four swerve modules are presumed to point forward prior to the
     rotations.  Clockwise angles are negative and counterclockwise angles are
     positive, following classroom conventions.
+
+    Arguments:
+    - length: The length of the drive base (that is, the length from the
+              center of one of the front wheels to the center of the back
+              wheel on the same side.)
+    - width:  The width of the drive base (that is, the width from the center
+              of one of the left wheels to the center of the right wheel on
+              the same end.)
+    Returns:
+      Returns an array of four angles, in radians, representing the amounts by
+      which the front left, front right, back right, and back left swerve
+      modules (respectively) need to be rotated so that all four modules are
+      tangent to the circumcircle.
     """
     theta: float = math.atan(length / width)
-    return [-theta,  # FRONT_LEFT
-            +theta,  # FRONT_RIGHT
-            -theta,  # BACK_LEFT
-            +theta]  # BACK_RIGHT
+    phi: float = math.pi/2 - theta         # This term cancels out; see below.
+    result: List[float] = [0] * 4
+    result[FRONT_LEFT] = theta
+    result[FRONT_RIGHT] = math.pi - theta  # π/2 + φ = (π/2 - θ) + π/2 = π + θ
+    result[BACK_LEFT] = -theta
+    result[BACK_RIGHT] = theta - math.pi   # -π/2 - φ = (θ - π/2) - π/2 = θ - π
+    return result
 
 
 def draw_crab_rotation_diagram(canvas: AsciiCanvas,
-                               width: float, height: float):
+                               width: float, height: float,
+                               draw_circle: bool = False):
     """
     Draws an ellipse which circumscribes a rectangle having the aspect ratio of
     width/height.
+
+    The information from https://en.wikipedia.org/wiki/Cyclic_quadrilateral
+    was helpful for getting the math (roughly) correct on this one.
+
+    Arguments:
+    - canvas: The AsciiCanvas to "draw" on.  You can inspect the results later
+              with canvas.print().
+    - width:  The width of the drive base (see get_crab_rotation_thetas for
+              details.)
+    - height: The _length_ of the drive base (see get_crab_rotation_thetas for
+              details.)
+    - draw_circle: If True, draw the circumcircle that surrounds the chassis
+                   rectangle.
     """
+    thetas: List[float] = get_crab_rotation_thetas(height, width)
+    vectors: List[Vector] = [Vector(0, -1),  # FRONT_LEFT
+                             Vector(0, -1),  # FRONT_RIGHT
+                             Vector(0, -1),  # BACK_LEFT
+                             Vector(0, -1)]  # BACK_RIGHT
+    for i in range(len(vectors)):
+        vectors[i] = rotate(vectors[i], thetas[i])
+        # print(f"{vectors[i]}")
 
     # How much of the canvas height the rectangle representing the chassis
     # will take up.
@@ -912,22 +950,52 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     # How much to scale the width of the circumcircle and the rectangle in
     # order to make them look nicer in ASCII.
     ELLIPSE_ASPECT_RATIO = 2.0
-
     center_x: float = canvas.width / 2
     center_y: float = canvas.height / 2
 
+    # Calculate the corners of the chassis rectangle.
+    x1: float = center_x - scaled_width * ELLIPSE_ASPECT_RATIO / 2
+    y1: float = center_y - scaled_height / 2
+    x2: float = center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2
+    y2: float = center_y + scaled_height / 2
+
+    if draw_circle:
+        canvas.overwrite = OverwriteBehavior.ALWAYS
+        canvas.draw_ellipse(center_x, center_y,
+                            circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
+
     canvas.overwrite = OverwriteBehavior.ALWAYS
-    canvas.draw_ellipse(center_x, center_y,
-                        circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
-    canvas.overwrite = OverwriteBehavior.ALWAYS
-    canvas.draw_rect(center_x - scaled_width * ELLIPSE_ASPECT_RATIO / 2,
-                     center_y - scaled_height / 2,
-                     center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2,
-                     center_y + scaled_height / 2)
+    canvas.draw_rect(x1, y1, x2, y2)
 
     canvas.draw_text(center_x, center_y - scaled_height/2 + 1, f"{width}", 0)
     canvas.draw_text(center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2 - 1,
                      center_y, f"{height}", 1)
+
+    # Draw the chassis wheels as rotated rectangles.
+    corners: List[Tuple[float, float]] = [(0, 0)] * 4
+    corners[FRONT_LEFT] = (x1, y1)
+    corners[FRONT_RIGHT] = (x2, y1)
+    corners[BACK_RIGHT] = (x2, y2)
+    corners[BACK_LEFT] = (x1, y2)
+
+    for i in range(len(corners)):
+        corner_x: float = corners[i][0]
+        corner_y: float = corners[i][1]
+        WHEEL_LENGTH: float = 7
+        WHEEL_WIDTH: float = 5
+        # The line segment p1->p2 goes through the long axis of the wheel.
+        p1: Tuple[float, float] = (corner_x - (WHEEL_LENGTH/2) * vectors[i].x,
+                                   corner_y - (WHEEL_LENGTH/2) * vectors[i].y)
+        p2: Tuple[float, float] = (corner_x + (WHEEL_LENGTH/2) * vectors[i].x,
+                                   corner_y + (WHEEL_LENGTH/2) * vectors[i].y)
+        canvas.overwrite = OverwriteBehavior.ALWAYS
+        canvas.draw_rotated_rect(p1[0], p1[1], p2[0], p2[1], WHEEL_WIDTH)
+
+        canvas.draw_line(corner_x,
+                         corner_y,
+                         corner_x + WHEEL_LENGTH * vectors[i].x,
+                         corner_y + WHEEL_LENGTH * vectors[i].y)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
@@ -943,6 +1011,20 @@ if __name__ == "__main__":
     mandatory_group.add_argument("length",
                                  type=float,
                                  help="Length of the chassis.")
+
+    rendering_group = parser.add_argument_group("Rendering arguments")
+    rendering_group.add_argument("--canvas-width", "-W",
+                                 type=int,
+                                 default=79,
+                                 help="Width of the ASCII grid, in characters.  Default %(default)s.")
+    rendering_group.add_argument("--canvas-height", "-H",
+                                 type=int,
+                                 default=25,
+                                 help="Height of the ASCII grid, in characters.  Default %(default)s.")
+    rendering_group.add_argument("--draw-circle", "-c",
+                                 action="store_true",
+                                 default=False,
+                                 help="If true, draw the circumcircle that  the wheels would be tangent to during a full rotation.  Default is %(default)s.")
 
     joystick_group = parser.add_argument_group("Joystick channels")
     joystick_group.add_argument("forwardBack",
@@ -968,12 +1050,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     params = [
-        ["verbose",     args.verbose,     0],
-        ["length",      args.length,      0],
-        ["width",       args.width,       0],
-        ["forwardBack", args.forwardBack, 1],
-        ["leftRight",   args.leftRight,   1],
-        ["rotation",    args.rotation,    1],
+        ["verbose",       args.verbose,       0],
+        ["length",        args.length,        0],
+        ["width",         args.width,         0],
+        ["canvas_width",  args.canvas_width,  0],
+        ["canvas_height", args.canvas_height, 0],
+        ["draw_circle",   args.draw_circle,   0],
+        ["forwardBack",   args.forwardBack,   1],
+        ["leftRight",     args.leftRight,     1],
+        ["rotation",      args.rotation,      1],
     ]
 
     channels = 0
@@ -1005,7 +1090,7 @@ if __name__ == "__main__":
         degrees = [angle * RADIANS_TO_DEGREES for angle in thetas]
         print(f"Thetas: Front left = {degrees[FRONT_LEFT]:.3f}°, Front right = {degrees[FRONT_RIGHT]:.3f}°, Back left = {degrees[BACK_LEFT]:.3f}°, Back right = {degrees[BACK_RIGHT]:.3f}°,")
 
-    grid = AsciiCanvas(79, 25)
+    grid = AsciiCanvas(args.canvas_width, args.canvas_height)
     # grid.draw_ellipse(grid.width / 2,
     #                   grid.height / 2,
     #                   grid.width * 0.4,
@@ -1025,5 +1110,6 @@ if __name__ == "__main__":
     # grid.overwrite = OverwriteBehavior.MERGE
     # grid.draw_rotated_rect(0, 0, 79, 25, 1)
 
-    draw_crab_rotation_diagram(grid, args.width, args.length)
+    draw_crab_rotation_diagram(grid, args.width, args.length,
+                               draw_circle=args.draw_circle)
     grid.print()
