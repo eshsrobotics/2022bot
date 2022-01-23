@@ -5,13 +5,50 @@ import math
 import argparse
 
 from enum import Enum
-from typing import List, NamedTuple, Optional, IO, Tuple
+from typing import List, NamedTuple, Optional, IO, Tuple, Mapping
 
 
 class Vector(NamedTuple):
     """A very simple 2D vector."""
     x: float
     y: float
+
+    def normalized(self):
+        """
+        Returns a Vector pointing in the same direction as this Vector, but
+        with a length of 1.  Vectors that have a length of 0 are returned
+        unchanged.
+        """
+        length = math.dist((0, 0), (self.x, self.y))
+        if length == 0:
+            return self
+        return Vector(self.x / length, self.y / length)
+
+    def rotate(self, theta: float):
+        """
+        Returns a copy of this vector rotated by theta radians
+        counterclockwise around the origin.
+        """
+        costheta: float = math.cos(theta)
+        sintheta: float = math.sin(theta)
+        return Vector(self.x * costheta - self.y * sintheta,
+                      self.x * sintheta + self.y * costheta)
+
+
+    def __mul__(self, factor: float):
+        """Returns this vector scaled by the given factor."""
+        return Vector(self.x * factor, self.y * factor)
+
+    # Make sure 2 * v works as well as v * 2.
+    __rmul__ = __mul__
+
+    def __add__(self, v):
+        """Returns the sum of the given vector and this one."""
+        return Vector(self.x + v.x, self.y + v.y)
+
+    def __neg__(self):
+        """Returns a vector pointed in the opposite direction from this one."""
+        return Vector(-self.x, -self.y)
 
 
 FRONT_LEFT: int = 0
@@ -784,7 +821,7 @@ program calculates."""
 
         if main_axis_length == 0:
             # Degenerate rectangle.
-            points.append(round_nearest(x1), round_nearest(y1))
+            points.append((round_nearest(x1), round_nearest(y1)))
         else:
             main_axis_normalized: Tuple[float, float] = \
                 ((x2 - x1) / main_axis_length, (y2 - y1) / main_axis_length)
@@ -855,17 +892,6 @@ program calculates."""
             current_x += 1
 
 
-def rotate(v: Vector, theta: float) -> Vector:
-    """
-    Rotates the given vector by theta radians counterclockwise around the
-    origin.
-    """
-    costheta: float = math.cos(theta)
-    sintheta: float = math.sin(theta)
-    return Vector(v.x * costheta - v.y * sintheta,
-                  v.x * sintheta + v.y * costheta)
-
-
 def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
     """
     Calculates the rotation angles that the four swerve modules of a swerve
@@ -901,13 +927,14 @@ def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
 
 def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                                width: float, height: float,
-                               draw_circle: bool = False):
+                               params = None):
     """
     Draws an ellipse which circumscribes a rectangle having the aspect ratio of
     width/height.
 
     The information from https://en.wikipedia.org/wiki/Cyclic_quadrilateral
-    was helpful for getting the math (roughly) correct on this one.
+    was helpful for getting the circumcircle math (roughly) correct on this
+    one.
 
     Arguments:
     - canvas: The AsciiCanvas to "draw" on.  You can inspect the results later
@@ -916,21 +943,52 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
               details.)
     - height: The _length_ of the drive base (see get_crab_rotation_thetas for
               details.)
-    - draw_circle: If True, draw the circumcircle that surrounds the chassis
-                   rectangle.
+    - params: Optional.  An object with any of the following attributes:
+      * draw_circle: If True, draw the circumcircle that surrounds the chassis
+                     rectangle.
+      * forwardBack: The Y-component of the field-oriented direction vector
+                     (the front of the field is considered to be the top of
+                     the screen.)
+                     Range must be from -1.0 to 1.0.
+      * leftRight:   The X-component of the field-oriented direction vector
+                     (the right side of the field is considered to be the
+                     right side of the screen.)
+                     Range must be from -1.0 to 1.0.
+      * rotation:    The degree to which the crab rotation angles -- or their
+                     inverses -- should influence the orientation of the
+                     swerve wheels.  At 0, there is no influence, and all four
+                     swerve wheels will point in the same direction (namely,
+                     the vector [forwardBack, leftRight.])  Increasing the
+                     value of the rotation parameter adds a multiple of the
+                     crab rotation vectors to that direction vector.
+                     Range must be from -1.0 to 1.0.
     """
+    forwardBack: float = 0 if not hasattr(params, "forwardBack") or params.forwardBack is None else -params.forwardBack
+    leftRight: float = 0 if not hasattr(params, "leftRight") or params.leftRight is None else params.leftRight
+    rotation: float = 1.0 if not hasattr(params, "rotation") or params.rotation is None else params.rotation
+    direction: Vector = Vector(leftRight, forwardBack)
+    direction = direction.normalized()
+
+    # Calculate the directions for all of the individual swerve wheels as
+    # vectors.
     thetas: List[float] = get_crab_rotation_thetas(height, width)
     vectors: List[Vector] = [Vector(0, -1),  # FRONT_LEFT
                              Vector(0, -1),  # FRONT_RIGHT
                              Vector(0, -1),  # BACK_LEFT
                              Vector(0, -1)]  # BACK_RIGHT
     for i in range(len(vectors)):
-        vectors[i] = rotate(vectors[i], thetas[i])
-        # print(f"{vectors[i]}")
+        # Negative rotation parameters should rotate in reverse.
+        crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else thetas[i] + math.pi)
+
+        # Use a combination of the overall direction vector and the rotation
+        # parameter.
+        r: float = abs(rotation)
+        vectors[i] = (1 - r) * direction + (r * crabVector)
+        vectors[i] = vectors[i].normalized()  # Probably not needed
 
     # How much of the canvas height the rectangle representing the chassis
     # will take up.
-    HEIGHT_SCALE_FACTOR = 0.7
+    HEIGHT_SCALE_FACTOR = 0.7 if not hasattr(params, "zoom") or params.zoom is None else params.zoom
     scaled_height: float = HEIGHT_SCALE_FACTOR * canvas.height
 
     # Height : scaled_height :: width : scaled_width
@@ -959,7 +1017,7 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     x2: float = center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2
     y2: float = center_y + scaled_height / 2
 
-    if draw_circle:
+    if hasattr(params, "draw_circle") and params.draw_circle:
         canvas.overwrite = OverwriteBehavior.ALWAYS
         canvas.draw_ellipse(center_x, center_y,
                             circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
@@ -967,17 +1025,12 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     canvas.overwrite = OverwriteBehavior.ALWAYS
     canvas.draw_rect(x1, y1, x2, y2)
 
-    canvas.draw_text(center_x, center_y - scaled_height/2 + 1, f"{width}", 0)
-    canvas.draw_text(center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2 - 1,
-                     center_y, f"{height}", 1)
-
     # Draw the chassis wheels as rotated rectangles.
     corners: List[Tuple[float, float]] = [(0, 0)] * 4
     corners[FRONT_LEFT] = (x1, y1)
     corners[FRONT_RIGHT] = (x2, y1)
     corners[BACK_RIGHT] = (x2, y2)
     corners[BACK_LEFT] = (x1, y2)
-
     for i in range(len(corners)):
         corner_x: float = corners[i][0]
         corner_y: float = corners[i][1]
@@ -996,6 +1049,29 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                          corner_x + WHEEL_LENGTH * vectors[i].x,
                          corner_y + WHEEL_LENGTH * vectors[i].y)
 
+    # Label the chassis sides.
+    canvas.draw_text(center_x, center_y - scaled_height/2 + 1, f"{width}", 0)
+    canvas.draw_text(center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2 - 1,
+                     center_y, f"{height}", 1)
+
+    # Label the swerve angles.
+    x_offsets: List[float] = [0] * 4
+    x_offsets[FRONT_LEFT] = x_offsets[BACK_LEFT] = -6
+    x_offsets[FRONT_RIGHT] = x_offsets[BACK_RIGHT] = 6
+    for i in range(len(corners)):
+        # Force a vector facing directly upward to have an angle of 0°.
+        theta: float = math.atan2(vectors[i].y, vectors[i].x) + math.pi/2
+
+        # Force the overall range to be in the interval [-π, π] with respect
+        # to the top (0°).  This represents the minimum rotation that the
+        # swerve wheels will have to perform to go from facing forward to
+        # facing in the required direction.
+        theta = math.fmod(theta + math.pi, 2 * math.pi) - math.pi
+
+        canvas.draw_text(corners[i][0] + x_offsets[i],
+                         corners[i][1],
+                         f"{theta * RADIANS_TO_DEGREES:.2f}°",
+                         +1 if x_offsets[i] < 0 else -1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
@@ -1021,6 +1097,10 @@ if __name__ == "__main__":
                                  type=int,
                                  default=25,
                                  help="Height of the ASCII grid, in characters.  Default %(default)s.")
+    rendering_group.add_argument("--zoom", "-z",
+                                 type=float,
+                                 default=0.7,
+                                 help="How much to scale chassis length as a percentage of the overall canvas height.  The default is %(default)s.")
     rendering_group.add_argument("--draw-circle", "-c",
                                  action="store_true",
                                  default=False,
@@ -1110,6 +1190,5 @@ if __name__ == "__main__":
     # grid.overwrite = OverwriteBehavior.MERGE
     # grid.draw_rotated_rect(0, 0, 79, 25, 1)
 
-    draw_crab_rotation_diagram(grid, args.width, args.length,
-                               draw_circle=args.draw_circle)
+    draw_crab_rotation_diagram(grid, args.width, args.length, args)
     grid.print()
