@@ -115,13 +115,13 @@ public final class Constants {
      * Width of the wheel base in meters from the center of one wheel on the left to
      * the center of one wheel on the right
      */
-    public static double WHEEL_BASE_WIDTH_METERS = 22.5 / 12 * FEET_TO_METERS;
+    public static double WHEEL_BASE_WIDTH_METERS = 22.5 /* inches */ / 12 * FEET_TO_METERS;
 
     /**
      * Length of the wheel base in meters from the center of one wheel on the back
      * to the center of one wheel on the front
      */
-    public static double WHEEL_BASE_LENGTH_METERS = 22.5 / 12 * FEET_TO_METERS;
+    public static double WHEEL_BASE_LENGTH_METERS = 22.5 /* inches */ / 12 * FEET_TO_METERS;
 
     private static double WHEEL_BASE_DIAGONAL_METERS = Math.sqrt(WHEEL_BASE_WIDTH_METERS * WHEEL_BASE_WIDTH_METERS +
             WHEEL_BASE_LENGTH_METERS * WHEEL_BASE_LENGTH_METERS);

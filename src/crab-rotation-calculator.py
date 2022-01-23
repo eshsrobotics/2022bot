@@ -50,6 +50,9 @@ class Vector(NamedTuple):
         """Returns a vector pointed in the opposite direction from this one."""
         return Vector(-self.x, -self.y)
 
+    def __str__(self) -> str:
+        """Returns a string representation of this vector."""
+        return f"({self.x:.2f}, {self.y:.2f})"
 
 FRONT_LEFT: int = 0
 BACK_LEFT: int = 1
@@ -112,7 +115,7 @@ program calculates."""
 
         Arguments:
         - Width: The width of the grid in character cells.
-        - Height: The height of trhe grid in character cells.
+        - Height: The height of the grid in character cells.
         """
         self._grid: List[int] = [ord(' ')] * (width * height)
         self._width: int = width
@@ -121,10 +124,14 @@ program calculates."""
         self._overwrite: OverwriteBehavior = OverwriteBehavior.ALWAYS
 
     @property
-    def width(self): return self._width
+    def width(self): 
+        """The width of the canvas in character cells."""
+        return self._width
 
     @property
-    def height(self): return self._height
+    def height(self): 
+        """The height of the canvas in character cells."""
+        return self._height
 
     @property
     def overwrite(self):
@@ -465,7 +472,7 @@ program calculates."""
             self._table[NW | N | SE | W] = 'q'
             self._table[NW | N | S | SW] = ']'                    # Closely resembles a backwards 'K'
             self._table[NW | N | S | W] = ':'                     # Previous candidate was 'q', but it looked too fat
-            self._table[NW | N | SW | W] = ';'                    # Could only be 'p' if table[NW | w|S | SW | W] was '8'
+            self._table[NW | N | SW | W] = ';'                    # Could only be 'p' if table[NW | W | S | SW | W] was '8'
             self._table[NW | NE | E | SE] = '7'                   # Could be 'q'
             self._table[NW | NE | E | S] = 'U'
             self._table[NW | NE | S | W] = 'U'
@@ -492,7 +499,7 @@ program calculates."""
             self._table[N | E | SE | S] = ':'                     # Previous candidate was 'b', but it looked too fat
             self._table[N | E | SE | SW] = 'n'
             self._table[N | E | SE | W] = 'q'
-            self._table[N | E | S | SW] = 'j'                     # Closely resembes a reverse 'L'
+            self._table[N | E | S | SW] = 'j'                     # Closely resembles a reverse 'L'
             self._table[N | E | SW | W] = 'p'
             self._table[N | SE | S | SW] = 'i'                    # Or should we use 'A' or 'l'?
             self._table[N | SE | S | W] = 'L'
@@ -978,13 +985,14 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                              Vector(0, -1)]  # BACK_RIGHT
     for i in range(len(vectors)):
         # Negative rotation parameters should rotate in reverse.
-        crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else thetas[i] + math.pi)
+        crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else (thetas[i] + math.pi))        
 
         # Use a combination of the overall direction vector and the rotation
         # parameter.
         r: float = abs(rotation)
         vectors[i] = (1 - r) * direction + (r * crabVector)
-        vectors[i] = vectors[i].normalized()  # Probably not needed
+        # print(f"{i}: {1 - r:.1f} * {direction} + {r:.1f} * {crabVector} = {(1-r)*direction} + {r*crabVector} = {vectors[i]}")
+        vectors[i] = vectors[i].normalized()
 
     # How much of the canvas height the rectangle representing the chassis
     # will take up.
@@ -1078,7 +1086,7 @@ if __name__ == "__main__":
     Calculates the swerve module angles that will cause a given drive train to
     pivot in place.  It can also calculate the vectors that result from adding
     these rotated vectors to an overall chassis direction.
-    """, usage="%(prog)s [-h] width length [forwardBack leftRight rotation]")
+    """, usage="%(prog)s [-hvWHzc] width length [forwardBack leftRight rotation]")
 
     mandatory_group = parser.add_argument_group("Mandatory arguments")
     mandatory_group.add_argument("width",
@@ -1092,19 +1100,19 @@ if __name__ == "__main__":
     rendering_group.add_argument("--canvas-width", "-W",
                                  type=int,
                                  default=79,
-                                 help="Width of the ASCII grid, in characters.  Default %(default)s.")
+                                 help="Width of the ASCII grid, in characters.  Defaults to %(default)s.")
     rendering_group.add_argument("--canvas-height", "-H",
                                  type=int,
                                  default=25,
-                                 help="Height of the ASCII grid, in characters.  Default %(default)s.")
+                                 help="Height of the ASCII grid, in characters.  Defaults to %(default)s.")
     rendering_group.add_argument("--zoom", "-z",
                                  type=float,
                                  default=0.7,
-                                 help="How much to scale chassis length as a percentage of the overall canvas height.  The default is %(default)s.")
+                                 help="How much to scale chassis length as a percentage of the overall canvas height.  Defaults to %(default)s.")
     rendering_group.add_argument("--draw-circle", "-c",
                                  action="store_true",
                                  default=False,
-                                 help="If true, draw the circumcircle that  the wheels would be tangent to during a full rotation.  Default is %(default)s.")
+                                 help="If true, draw the circumcircle that  the wheels would be tangent to during a full rotation.  Defaults to %(default)s.")
 
     joystick_group = parser.add_argument_group("Joystick channels")
     joystick_group.add_argument("forwardBack",
