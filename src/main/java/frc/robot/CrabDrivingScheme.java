@@ -29,6 +29,40 @@ public class CrabDrivingScheme implements DrivingScheme {
             absoluteTranslationVector,
             absoluteTranslationVector
         };
+
+        // The "crab rotation" vectors are the four vectors that are tangent to
+        // the circumcircle of the drive base rectangle.  If you'll forgive the
+        // gratuitous ASCII:
+        //
+        //                  ,
+        //                 /
+        //                /
+        //               /    ,---------.
+        //              / ,--'           `--.
+        //  45.00°     ',---------------------..     135.00°
+        //            /:                       :\
+        //           / |                       | \
+        //          :  |                       |  \
+        //          |  |                       |  |\
+        //          |  |                       |  | `
+        //          |  |                       |  |
+        //        . |  |                       |  |
+        //         \|  |                       |  |
+        //          \  |                       |  ;
+        //           \ |                       | /
+        //            \:                       ;/
+        // -45.00°     ``---------------------',     -135.00°
+        //                `--.           ,--' /
+        //                    `---------'    /
+        //                                  /
+        //                                 /
+        //                                '
+        //
+        // Here, the drive base's dimensions are equal, so the tangents all lie at
+        // 45-degree angles.  The formula for calculating these angles is simple and
+        // actually does involve tangents.
+        double theta = Math.atan(Constants.WHEEL_BASE_LENGTH_METERS / Constants.WHEEL_BASE_WIDTH_METERS);
+
         return null;
     }
 
