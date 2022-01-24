@@ -124,12 +124,12 @@ program calculates."""
         self._overwrite: OverwriteBehavior = OverwriteBehavior.ALWAYS
 
     @property
-    def width(self): 
+    def width(self):
         """The width of the canvas in character cells."""
         return self._width
 
     @property
-    def height(self): 
+    def height(self):
         """The height of the canvas in character cells."""
         return self._height
 
@@ -926,7 +926,7 @@ def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
     phi: float = math.pi/2 - theta         # This term cancels out; see below.
     result: List[float] = [0] * 4
     result[FRONT_LEFT] = theta
-    result[FRONT_RIGHT] = math.pi - theta  # π/2 + φ = (π/2 - θ) + π/2 = π + θ
+    result[FRONT_RIGHT] = math.pi - theta  # π/2 + φ = (π/2 - θ) + π/2 = π - θ
     result[BACK_LEFT] = -theta
     result[BACK_RIGHT] = theta - math.pi   # -π/2 - φ = (θ - π/2) - π/2 = θ - π
     return result
@@ -987,7 +987,7 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                              Vector(0, -1)]  # BACK_RIGHT
     for i in range(len(vectors)):
         # Negative rotation parameters should rotate in reverse.
-        crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else (thetas[i] + math.pi))        
+        crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else (thetas[i] + math.pi))
 
         # Use a combination of the overall direction vector and the rotation
         # parameter.
@@ -1052,7 +1052,7 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                                     corner_y - (WHEEL_LENGTH/2) * vectors[i].y)
             p2: Tuple[float, float] = (corner_x + (WHEEL_LENGTH/2) * vectors[i].x,
                                     corner_y + (WHEEL_LENGTH/2) * vectors[i].y)
-                    
+
             canvas.overwrite = OverwriteBehavior.ALWAYS
             canvas.draw_rotated_rect(p1[0], p1[1], p2[0], p2[1], WHEEL_WIDTH)
 

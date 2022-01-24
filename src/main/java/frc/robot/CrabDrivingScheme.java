@@ -3,6 +3,7 @@ package frc.robot;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
@@ -61,8 +62,23 @@ public class CrabDrivingScheme implements DrivingScheme {
         // Here, the drive base's dimensions are equal, so the tangents all lie at
         // 45-degree angles.  The formula for calculating these angles is simple and
         // actually does involve tangents.
-        double theta = Math.atan(Constants.WHEEL_BASE_LENGTH_METERS / Constants.WHEEL_BASE_WIDTH_METERS);
 
+        double theta = Math.atan(Constants.WHEEL_BASE_LENGTH_METERS / Constants.WHEEL_BASE_WIDTH_METERS);
+        // double phi = Math.PI/2 - theta;               // This term cancels out.
+        double[] thetas = { 0, 0, 0, 0 };
+        thetas[Constants.FRONT_LEFT] = theta;
+        thetas[Constants.FRONT_RIGHT] = Math.PI - theta; //  π/2 + φ = (π/2 - θ) + π/2 = π - θ
+        thetas[Constants.BACK_RIGHT] = theta - Math.PI;  // -π/2 - φ = (θ - π/2) - π/2 = θ - π
+        thetas[Constants.BACK_LEFT] = -theta;
+
+        // Translate the crab rotation angles into vectors.
+        Translation2d[] crabRotationVectors = { null, null, null, null };
+        for (int i = 0; i < thetas.length; ++i) {
+            // We assume here that the up vector faces forward.  The rotation
+            // here is counterclockwise around the origin.
+            double angleRadians = thetas[i] > 0 ? thetas[i] : Math.PI + thetas[i];
+            crabRotationVectors[i] = new Translation2d(0, -1).rotateBy(new Rotation2d(angleRadians));
+        }
         return null;
     }
 

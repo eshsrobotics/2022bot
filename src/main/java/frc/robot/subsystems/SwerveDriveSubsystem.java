@@ -97,6 +97,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
 
+        // Initialize the swerve motors (pivot and speed.)
         reversalFlags = new ArrayList<Boolean>();
         pivotMotors = new ArrayList<CANSparkMax>();
         speedMotors = new ArrayList<CANSparkMax>();
@@ -117,7 +118,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             // otherwise, the slop will throw us off.
             m.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-
+            // The conversion factor translates rotations of the pivot motor to
+            // rotations of the swerve wheel.  Doing this allows us to pass
+            // whole rotations into CANEncoder.setReference().
+            m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
         });
 
     }
