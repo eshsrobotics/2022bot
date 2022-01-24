@@ -953,6 +953,8 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     - params: Optional.  An object with any of the following attributes:
       * draw_circle: If True, draw the circumcircle that surrounds the chassis
                      rectangle.
+      * draw_wheels: If True, draw the wheels at the corners of the chassis
+                     rectangle.
       * forwardBack: The Y-component of the field-oriented direction vector
                      (the front of the field is considered to be the top of
                      the screen.)
@@ -1044,13 +1046,15 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
         corner_y: float = corners[i][1]
         WHEEL_LENGTH: float = 7
         WHEEL_WIDTH: float = 5
-        # The line segment p1->p2 goes through the long axis of the wheel.
-        p1: Tuple[float, float] = (corner_x - (WHEEL_LENGTH/2) * vectors[i].x,
-                                   corner_y - (WHEEL_LENGTH/2) * vectors[i].y)
-        p2: Tuple[float, float] = (corner_x + (WHEEL_LENGTH/2) * vectors[i].x,
-                                   corner_y + (WHEEL_LENGTH/2) * vectors[i].y)
-        canvas.overwrite = OverwriteBehavior.ALWAYS
-        canvas.draw_rotated_rect(p1[0], p1[1], p2[0], p2[1], WHEEL_WIDTH)
+        if not hasattr(params, "no_wheels") or params.no_wheels == False:
+            # The line segment p1->p2 goes through the long axis of the wheel.
+            p1: Tuple[float, float] = (corner_x - (WHEEL_LENGTH/2) * vectors[i].x,
+                                    corner_y - (WHEEL_LENGTH/2) * vectors[i].y)
+            p2: Tuple[float, float] = (corner_x + (WHEEL_LENGTH/2) * vectors[i].x,
+                                    corner_y + (WHEEL_LENGTH/2) * vectors[i].y)
+                    
+            canvas.overwrite = OverwriteBehavior.ALWAYS
+            canvas.draw_rotated_rect(p1[0], p1[1], p2[0], p2[1], WHEEL_WIDTH)
 
         canvas.draw_line(corner_x,
                          corner_y,
@@ -1112,7 +1116,11 @@ if __name__ == "__main__":
     rendering_group.add_argument("--draw-circle", "-c",
                                  action="store_true",
                                  default=False,
-                                 help="If true, draw the circumcircle that  the wheels would be tangent to during a full rotation.  Defaults to %(default)s.")
+                                 help="If present, draw the circumcircle that  the wheels would be tangent to during a full rotation.  Defaults to %(default)s.")
+    rendering_group.add_argument("--no-wheels", "-nw",
+                                 action="store_true",
+                                 default=False,
+                                 help="If present, do not draw the rotated swerve drive wheels on the corners of the chassis.  Defaults to %(default)s.")
 
     joystick_group = parser.add_argument_group("Joystick channels")
     joystick_group.add_argument("forwardBack",
@@ -1144,6 +1152,7 @@ if __name__ == "__main__":
         ["canvas_width",  args.canvas_width,  0],
         ["canvas_height", args.canvas_height, 0],
         ["draw_circle",   args.draw_circle,   0],
+        ["no_wheels",     args.no_wheels,     0],
         ["forwardBack",   args.forwardBack,   1],
         ["leftRight",     args.leftRight,     1],
         ["rotation",      args.rotation,      1],
