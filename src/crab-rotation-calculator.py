@@ -934,7 +934,7 @@ def get_crab_rotation_thetas(length: float, width: float) -> List[float]:
 
 def draw_crab_rotation_diagram(canvas: AsciiCanvas,
                                width: float, height: float,
-                               params = None):
+                               params=None):
     """
     Draws an ellipse which circumscribes a rectangle having the aspect ratio of
     width/height.
@@ -966,8 +966,8 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
       * rotation:    The degree to which the crab rotation angles -- or their
                      inverses -- should influence the orientation of the
                      swerve wheels.  At 0, there is no influence, and all four
-                     swerve wheels will point in the same direction (namely,
-                     the vector [forwardBack, leftRight.])  Increasing the
+                     swerve wheels will point in the same direction [namely,
+                     the vector (leftRight, forwardBack).]  Increasing the
                      value of the rotation parameter adds a multiple of the
                      crab rotation vectors to that direction vector.
                      Range must be from -1.0 to 1.0.
@@ -989,8 +989,8 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
         # Negative rotation parameters should rotate in reverse.
         crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else (thetas[i] + math.pi))
 
-        # Use a combination of the overall direction vector and the rotation
-        # parameter.
+        # Use linear interpolation between the overall direction vector and
+        # the crab rotation vector.
         r: float = abs(rotation)
         vectors[i] = (1 - r) * direction + (r * crabVector)
         # print(f"{i}: {1 - r:.1f} * {direction} + {r:.1f} * {crabVector} = {(1-r)*direction} + {r*crabVector} = {vectors[i]}")
@@ -1004,33 +1004,33 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     # Height : scaled_height :: width : scaled_width
     scaled_width: float = scaled_height * width / height
 
-    # Parameshvara's circumradius formula
-    perimeter: float = 2 * (scaled_width + scaled_height)
-    s: float = 0.5 * perimeter
-    a: float = scaled_height
-    b: float = scaled_width
-    c: float = scaled_height
-    d: float = scaled_width
-    numerator: float = (a * b + c * d) * (a * c + b * d) * (a * d + b * c)
-    denominator: float = (s - a) * (s - b) * (s - c) * (s - d)
-    circumradius: float = 0.25 * math.sqrt(numerator / denominator)
-
     # How much to scale the width of the circumcircle and the rectangle in
     # order to make them look nicer in ASCII.
     ELLIPSE_ASPECT_RATIO = 2.0
     center_x: float = canvas.width / 2
     center_y: float = canvas.height / 2
 
+    if hasattr(params, "draw_circle") and params.draw_circle:
+        # Parameshvara's circumradius formula
+        perimeter: float = 2 * (scaled_width + scaled_height)
+        s: float = 0.5 * perimeter
+        a: float = scaled_height
+        b: float = scaled_width
+        c: float = scaled_height
+        d: float = scaled_width
+        numerator: float = (a * b + c * d) * (a * c + b * d) * (a * d + b * c)
+        denominator: float = (s - a) * (s - b) * (s - c) * (s - d)
+        circumradius: float = 0.25 * math.sqrt(numerator / denominator)
+
+        canvas.overwrite = OverwriteBehavior.ALWAYS
+        canvas.draw_ellipse(center_x, center_y,
+                            circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
+
     # Calculate the corners of the chassis rectangle.
     x1: float = center_x - scaled_width * ELLIPSE_ASPECT_RATIO / 2
     y1: float = center_y - scaled_height / 2
     x2: float = center_x + scaled_width * ELLIPSE_ASPECT_RATIO / 2
     y2: float = center_y + scaled_height / 2
-
-    if hasattr(params, "draw_circle") and params.draw_circle:
-        canvas.overwrite = OverwriteBehavior.ALWAYS
-        canvas.draw_ellipse(center_x, center_y,
-                            circumradius * ELLIPSE_ASPECT_RATIO, circumradius)
 
     canvas.overwrite = OverwriteBehavior.ALWAYS
     canvas.draw_rect(x1, y1, x2, y2)
@@ -1056,6 +1056,8 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
             canvas.overwrite = OverwriteBehavior.ALWAYS
             canvas.draw_rotated_rect(p1[0], p1[1], p2[0], p2[1], WHEEL_WIDTH)
 
+        # Draw a line segment pointing from the current corner in the
+        # direction of the current swerve wheel.
         canvas.draw_line(corner_x,
                          corner_y,
                          corner_x + WHEEL_LENGTH * vectors[i].x,
