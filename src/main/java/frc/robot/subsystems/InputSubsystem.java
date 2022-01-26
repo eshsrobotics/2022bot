@@ -16,6 +16,9 @@ import frc.robot.Constants;
  *
  * This class's purpose is to translate those inputs into those three numbers so that the drive subsystem
  * can use them during teleop.
+ *
+ * @see {@link frc.robot.DrivingScheme DrivingScheme}, which uses these three values
+ * to determine the direction and speed of the four swerve modules
  */
 public class InputSubsystem extends SubsystemBase {
     private XboxController controller = null;

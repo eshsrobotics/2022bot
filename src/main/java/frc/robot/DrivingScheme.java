@@ -11,6 +11,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  *
  * We can think of a couple of good ways to do this, so we abstracted the common features into
  * an interface.
+ *
+ * @see {@link frc.robot.subsystems.InputSubsystem InputSubsystem}, the
+ * subsystem which produces the drive control channel values that we need
+ * @see {@link frc.robot.SwerveDriver SwerveDriver}, the interface that
+ * consumes the {@code SwerveModuleStates} which we generate
  */
 public interface DrivingScheme {
     /**

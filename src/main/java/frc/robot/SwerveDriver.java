@@ -6,6 +6,9 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  * SwerveDrivers take four
  * {@link SwerveModuleState Swerve Module States} and commands the robot to
  * drive with them.
+ *
+ * @see {@link DrivingScheme}, the interface which produces the
+ * {@code SwerveModuleStates}
  */
 public interface SwerveDriver {
     /**
