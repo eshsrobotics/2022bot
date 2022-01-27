@@ -85,6 +85,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.inputSubsystem = inputSubsystem;
         this.gyro = new ADXRS450_Gyro();
+        this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
+        this.driver = new SwerveLibDriver();
+        
 
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
@@ -95,7 +98,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
         );
 
-        this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
 
         // Initialize the swerve motors (pivot and speed.)
         reversalFlags = new ArrayList<Boolean>();
