@@ -1,3 +1,5 @@
+package frc.robot.subsystems;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,13 +10,16 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.DrivingScheme;
-import frc.robot.SwerveDriver;
-import frc.robot.WPILibDrivingScheme;
+import frc.robot.driveSchemes.DrivingScheme;
+import frc.robot.driveSchemes.WPILibDrivingScheme;
+import frc.robot.drivers.SparkMaxSwerveDriver;
+import frc.robot.drivers.SwerveDriver;
+import frc.robot.drivers.SwerveLibDriver;
 import frc.robot.subsystems.InputSubsystem;
 
 /**
@@ -85,10 +90,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.inputSubsystem = inputSubsystem;
         this.gyro = new ADXRS450_Gyro();
-        this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
-        this.driver = new SwerveLibDriver();
         
-
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
         kinematics = new SwerveDriveKinematics(
@@ -98,33 +100,57 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
         );
 
+        this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
 
         // Initialize the swerve motors (pivot and speed.)
-        reversalFlags = new ArrayList<Boolean>();
-        pivotMotors = new ArrayList<CANSparkMax>();
-        speedMotors = new ArrayList<CANSparkMax>();
-        Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null});
-        Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null});
-        Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false});
-        speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-        speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-        speedMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-        speedMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-        pivotMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-        pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-        pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-        pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
+        try {
+            reversalFlags = new ArrayList<Boolean>();
+            pivotMotors = new ArrayList<CANSparkMax>();
+            speedMotors = new ArrayList<CANSparkMax>();
+            Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null});
+            Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null});
+            Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false});
+            speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
+            speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
+            speedMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
+            speedMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
+            pivotMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
+            pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
+            pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
+            pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
 
-        pivotMotors.forEach(m -> {
-            // When we cut power, the motors should stop pivoting immediately;
-            // otherwise, the slop will throw us off.
-            m.setIdleMode(CANSparkMax.IdleMode.kBrake);
+            pivotMotors.forEach(m -> {
+                // When we cut power, the motors should stop pivoting immediately;
+                // otherwise, the slop will throw us off.
+                m.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-            // The conversion factor translates rotations of the pivot motor to
-            // rotations of the swerve wheel.  Doing this allows us to pass
-            // whole rotations into CANEncoder.setReference().
-            m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
-        });
+                // The conversion factor translates rotations of the pivot motor to
+                // rotations of the swerve wheel.  Doing this allows us to pass
+                // whole rotations into CANEncoder.setReference().
+                m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
+            });
 
+        } catch (Throwable e) {
+            System.out.printf("Exception thrown: %s", e.getMessage());
+            e.printStackTrace();
+        }
+
+        // This currently blows up with a ClassNotFoundException at runtime on the robot,
+        // long before teleop or autonomous even start.
+        // this.driver = new SwerveLibDriver();
+        this.driver = new SparkMaxSwerveDriver(pivotMotors, speedMotors);
+    }
+
+    /**
+     * Continuously updates the swerve modules' speeds and angles based on autonomous state
+     * and/or user input.
+     */
+    @Override
+    public void periodic() {
+        SwerveModuleState[] currentState = drivingScheme.convert(inputSubsystem.getFrontBack(), 
+                                                                 inputSubsystem.getLeftRight(), 
+                                                                 inputSubsystem.getRotation());
+        driver.drive(currentState);
+        
     }
 }

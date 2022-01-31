@@ -1,6 +1,7 @@
-package frc.robot;
+package frc.robot.driveSchemes;
 
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.drivers.SwerveDriver;
 
 /**
  * A driving scheme takes three holonomic drive control channels
@@ -14,7 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  *
  * @see {@link frc.robot.subsystems.InputSubsystem InputSubsystem}, the
  * subsystem which produces the drive control channel values that we need
- * @see {@link frc.robot.SwerveDriver SwerveDriver}, the interface that
+ * @see {@link frc.robot.drivers.SwerveDriver SwerveDriver}, the interface that
  * consumes the {@code SwerveModuleStates} which we generate
  */
 public interface DrivingScheme {

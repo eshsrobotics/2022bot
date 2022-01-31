@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.drivers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Constants;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
     private List<CANSparkMax> pivotMotors;
@@ -41,37 +42,44 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         this.pivotMotors = pivotMotors;
         this.speedMotors = speedMotors;
         this.pidControllers = new ArrayList<SparkMaxPIDController>();
+        int i = 0;
         for (CANSparkMax pivotMotor : pivotMotors) {
-            var pidController = pivotMotor.getPIDController();
+            try {
+                System.out.printf("about to get pidcontroller #%d\n", i++);
+        //         var pidController = pivotMotor.getPIDController();
 
-            // Set PID coefficients.
-            pidController.setP(0.1);
-            pidController.setI(1e-4);
-            pidController.setD(1);
-            pidController.setIZone(0);
-            pidController.setFF(0);
-            pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
+        //         // Set PID coefficients.
+        //         pidController.setP(0.1);
+        //         pidController.setI(1e-4);
+        //         pidController.setD(1);
+        //         pidController.setIZone(0);
+        //         pidController.setFF(0);
+        //         pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
 
-            pidControllers.add(pidController);
+        //         pidControllers.add(pidController);
+            } catch (Exception e) {
+                System.out.printf("Could not get pid controller: %s\n", e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     public void drive(SwerveModuleState[] swerveModuleStates) {
         // Translates shopping cart speeds and angles into motion.
-        for  (int i = 0; i < swerveModuleStates.length; i++)  {
+        // for  (int i = 0; i < swerveModuleStates.length; i++)  {
 
-            // Translate speed from units of meters per second into a unitless
-            // value between -1.0 and 1.0.
-            double speed = swerveModuleStates[i].speedMetersPerSecond /
-                Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            speedMotors.get(i).set(speed);
+        //     // Translate speed from units of meters per second into a unitless
+        //     // value between -1.0 and 1.0.
+        //     double speed = swerveModuleStates[i].speedMetersPerSecond /
+        //         Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
+        //     speedMotors.get(i).set(speed);
 
-            // Set angle for current pivot motor.
-            double rotations = swerveModuleStates[i].angle.getDegrees() / 360;
-            pidControllers.get(i).setReference(rotations,
-                                               CANSparkMax.ControlType.kPosition);
-        }
+        //     // Set angle for current pivot motor.
+        //     double rotations = swerveModuleStates[i].angle.getDegrees() / 360;
+        //     pidControllers.get(i).setReference(rotations,
+        //                                        CANSparkMax.ControlType.kPosition);
+        // }
 
     }
 }

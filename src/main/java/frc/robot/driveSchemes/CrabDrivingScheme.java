@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.driveSchemes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,11 +7,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
+import frc.robot.Constants;
 
 /**
- * An alternative {@link frc.robot.DrivingScheme DrivingScheme} based on vector
+ * An alternative {@link frc.robot.driveSchemes.DrivingScheme DrivingScheme} based on vector
  * addition rather than
- * {@link frc.robot.WPILibDrivingScheme WPILib built-in primitives}.  The idea
+ * {@link frc.robot.driveSchemes.WPILibDrivingScheme WPILib built-in primitives}.  The idea
  * is that we add the overall robot translation vector to a multiple of the
  * crab rotation vectors in order to come up with overall direction vectors for
  * each swerve module.  The larger the rotation component of the input, the
