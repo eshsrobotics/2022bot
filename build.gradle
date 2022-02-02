@@ -87,3 +87,26 @@ jar {
 deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
 wpi.java.configureTestTasks(test)
+
+// Do NOT include the SparkMax-java-1.5.4 library in 2022bot.jar.
+//
+// This is important because REVLib publishes two separate libraries have
+// different names but a very similar interface:
+//
+//   - SparkMax-java-1.5.4 (the old one)
+//   - REVLib-java-2022.1.1 (the new one)
+//
+// The inclusion of both into our JAR causes the JAva runtime to resolve to the 
+// wrong version (the old one) at runtime, leading to things like
+// MethodNotFoundExceptions because CANSparkMax.getPidController() has a
+// different return type between the old and the new.  Ever since we added
+// com.github.SwerveDriveSpecialties:swerve-lib:1.0.0 as a dependency, we
+// somehow pulled both.
+//
+// We are grateful to the JD-GUI Java decompiler for providing critical insight,
+// the Gradle build scan system for confirming our suspicions, and
+// https://tomgregory.com/how-to-exclude-gradle-dependencies/ for finally
+// pointing the way out of this mess.
+configurations.implementation {
+    exclude group: 'com.revrobotics.frc', module: 'SparkMax-java'
+}
