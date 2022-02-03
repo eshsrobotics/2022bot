@@ -61,23 +61,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private SwerveDriveKinematics kinematics = null;
 
     /**
-     * Controls the speed of the four swerve wheels.
-     */
-    private List<CANSparkMax> speedMotors;
-
-    /**
-     * This is an array of 4 boolean values, one for each of the 4 speed motors.
-     * Whenever the reversal flag is true for a motor, then we will reverse the
-     * motor's direction in software.
-     */
-    private List<Boolean> reversalFlags;
-
-    /**
-     * Controls the angle of the four swerve wheels.
-     */
-    private List<CANSparkMax> pivotMotors;
-
-    /**
      * Initializes the drive and gyro. Whenever you start, the robot should
      * start with the front pointing away from the driver.
      *
@@ -102,43 +85,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
 
-        // Initialize the swerve motors (pivot and speed.)
-        try {
-            reversalFlags = new ArrayList<Boolean>();
-            pivotMotors = new ArrayList<CANSparkMax>();
-            speedMotors = new ArrayList<CANSparkMax>();
-            Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null});
-            Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null});
-            Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false});
-            speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-            speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-            speedMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-            speedMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
-            pivotMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-            pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-            pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-            pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-
-            pivotMotors.forEach(m -> {
-                // When we cut power, the motors should stop pivoting immediately;
-                // otherwise, the slop will throw us off.
-                m.setIdleMode(CANSparkMax.IdleMode.kBrake);
-
-                // The conversion factor translates rotations of the pivot motor to
-                // rotations of the swerve wheel.  Doing this allows us to pass
-                // whole rotations into CANEncoder.setReference().
-                m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
-            });
-
-        } catch (Throwable e) {
-            System.out.printf("Exception thrown: %s", e.getMessage());
-            e.printStackTrace();
-        }
-
         // This currently blows up with a ClassNotFoundException at runtime on the robot,
         // long before teleop or autonomous even start.
         // this.driver = new SwerveLibDriver();
-        this.driver = new SparkMaxSwerveDriver(pivotMotors, speedMotors);
+        this.driver = new SparkMaxSwerveDriver();
     }
 
     /**

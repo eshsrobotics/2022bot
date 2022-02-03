@@ -5,6 +5,33 @@ The robot's tentative name is **TATR** (The Articulated Turret Robot.)
 
 This file contains [motor and port assignments](#motor-and-port-assignments), the robot's [control scheme](#control-scheme), and technical discussion about its various [subsystems](#subsystems).
 
+## Avaliable Motors ##
+
+Motor distribution is as follows:
+
+Drive 
+  - 8 NEO-Spark MAX
+
+Shooter
+  - 2 NEO-Spark MAX
+  - 2 Linear servo - Rev servo Hub
+
+Turret
+  - 1 NEO-550-Spark MAX
+
+Intake
+  - 1 mini-cim-Spark
+
+Uptake
+  - 1 mini-cim-Spark
+
+Indexer
+  - 2 NEO-550-Spark MAX
+
+Climber
+  - 1 NEO-Spark MAX
+  - 1 cim spark
+  
 ## Control scheme ##
 
 _Note_: for field-oriented swerve to work, the robot must start the match with
