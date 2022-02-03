@@ -28,6 +28,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * Controls the angle of the four swerve wheels.
      */
     private List<CANSparkMax> pivotMotors;
+
     /**
      * Rotates the pivot motors to a given set point using PID.
      */
@@ -42,15 +43,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     private final double MIN_OUTPUT = -1;
 
     /**
-     * Initializes this object.  We need access to {@link CANSparkMAX} objects
-     * to do our dirty work, but since we should not _own_ them (that's
-     * {@link SwerveDriveSubsystem SwerveDriveSubsystem's} job!), the caller
-     * must pass them in at construction time.
-     *
-     * @param pivotMotors An list of four speed controllers that control the
-     *                    angles of the swerve drive wheels.
-     * @param speedMotors A list of four speed controllers that control the
-     *                    speed of the swerve drive wheels.
+     * Initializes all of the {@link CANSparkMax} motor and PID controllers.
      */
     public SparkMaxSwerveDriver() {
         // Initialize the swerve motors (pivot and speed.)
@@ -58,13 +51,15 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             reversalFlags = new ArrayList<Boolean>();
             pivotMotors = new ArrayList<CANSparkMax>();
             speedMotors = new ArrayList<CANSparkMax>();
-            Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null});
-            Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null});
-            Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false});
+            Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null });
+            Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null });
+            Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
+
             speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
+
             pivotMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
@@ -85,7 +80,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             System.out.printf("Exception thrown: %s", e.getMessage());
             e.printStackTrace();
         }
-        
+
         this.pidControllers = new ArrayList<SparkMaxPIDController>();
         int i = 0;
         for (CANSparkMax pivotMotor : pivotMotors) {
