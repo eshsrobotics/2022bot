@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.fasterxml.jackson.databind.ser.std.NumberSerializers.IntLikeSerializer;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -145,4 +147,10 @@ public final class Constants {
          */
         public static double ROBOT_MAXIMUM_ANGULAR_VELOCITY_RADIANS_PER_SECOND = (2 * Math.PI)
                         * (ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND / (Math.PI * WHEEL_BASE_DIAGONAL_METERS));
+
+        /** Deadzone value for the joystick channels of the controllers*/
+        public static double JOYSTICK_DEAD_ZONE = 0.125;
+
+        /** When declaring an alternate encoder we need to know the clicks per revolution. */
+        public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;
 }

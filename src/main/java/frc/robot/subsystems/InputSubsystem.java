@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -25,7 +27,8 @@ public class InputSubsystem extends SubsystemBase {
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-
+    
+    
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
@@ -76,7 +79,17 @@ public class InputSubsystem extends SubsystemBase {
         if (Math.abs(rotation) > 1.0) {
             rotation = Math.signum(rotation);
         }
-
+        
+        // Deadzone values that are too low
+        if (Math.abs(frontBack) < Constants.JOYSTICK_DEAD_ZONE) {
+            frontBack = 0;
+        }
+        if (Math.abs(leftRight) < Constants.JOYSTICK_DEAD_ZONE) {
+            leftRight = 0;
+        }
+        if (Math.abs(rotation) < Constants.JOYSTICK_DEAD_ZONE) {
+            rotation = 0;
+        }
         super.periodic();
     }
 
@@ -88,5 +101,9 @@ public class InputSubsystem extends SubsystemBase {
         if (!controller.isConnected()) {
             System.err.println("Warning: Xbox controller disconnected");
         }
+        ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
+        shuffleboardTab.addNumber("frontBack", () -> frontBack);
+        shuffleboardTab.addNumber("leftRight", () -> leftRight);
+        shuffleboardTab.addNumber("rotation", () -> rotation);
     }
 }

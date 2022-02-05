@@ -53,13 +53,13 @@ its front side facing away from the driver.__
 ### CAN bus IDs ###
 
 1. Front left drive motor (Brushless NEO @ Spark MAX)
-1. Back left drive motor (Brushless NEO @ Spark MAX)
-1. Back right drive motor (Brushless NEO @ Spark MAX)
-1. Front right drive motor (Brushless NEO @ Spark MAX)
-1. Front left pivot motor (Brushless NEO @ Spark MAX)
-1. Back left pivot motor (Brushless NEO @ Spark MAX)
-1. Back right pivot motor (Brushless NEO @ Spark MAX)
-1. Front right pivot motor (Brushless NEO @ Spark MAX)
+2. Back left drive motor (Brushless NEO @ Spark MAX)
+3. Back right drive motor (Brushless NEO @ Spark MAX)
+4. Front right drive motor (Brushless NEO @ Spark MAX)
+5. Front left pivot motor (Brushless NEO @ Spark MAX)
+6. Back left pivot motor (Brushless NEO @ Spark MAX)
+7. Back right pivot motor (Brushless NEO @ Spark MAX)
+8. Front right pivot motor (Brushless NEO @ Spark MAX)
 
 ### PWM ports ###
 

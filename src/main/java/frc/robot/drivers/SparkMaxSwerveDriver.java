@@ -9,6 +9,8 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.robot.Constants;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
@@ -107,6 +109,17 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 e.printStackTrace();
             }
         }
+        
+        ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
+        shuffleboardTab.addNumber("fLDefEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getEncoder().getPosition());
+        shuffleboardTab.addNumber("fRDefEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getEncoder().getPosition());
+        shuffleboardTab.addNumber("bLDefEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getEncoder().getPosition());
+        shuffleboardTab.addNumber("bRDefEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getEncoder().getPosition());
+        
+        shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
     }
 
     @Override
