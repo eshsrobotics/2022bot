@@ -5,33 +5,6 @@ The robot's tentative name is **TATR** (The Articulated Turret Robot.)
 
 This file contains [motor and port assignments](#motor-and-port-assignments), the robot's [control scheme](#control-scheme), and technical discussion about its various [subsystems](#subsystems).
 
-## Avaliable Motors ##
-
-Motor distribution is as follows:
-
-Drive 
-  - 8 NEO-Spark MAX
-
-Shooter
-  - 2 NEO-Spark MAX
-  - 2 Linear servo - Rev servo Hub
-
-Turret
-  - 1 NEO-550-Spark MAX
-
-Intake
-  - 1 mini-cim-Spark
-
-Uptake
-  - 1 mini-cim-Spark
-
-Indexer
-  - 2 NEO-550-Spark MAX
-
-Climber
-  - 1 NEO-Spark MAX
-  - 1 cim spark
-  
 ## Control scheme ##
 
 _Note_: for field-oriented swerve to work, the robot must start the match with
@@ -50,18 +23,45 @@ its front side facing away from the driver.__
 
 ## Motor and port assignments ##
 
+Motor distribution is as follows:
+
 ### CAN bus IDs ###
 
-1. Front left drive motor (Brushless NEO @ Spark MAX)
-2. Back left drive motor (Brushless NEO @ Spark MAX)
-3. Back right drive motor (Brushless NEO @ Spark MAX)
-4. Front right drive motor (Brushless NEO @ Spark MAX)
-5. Front left pivot motor (Brushless NEO @ Spark MAX)
-6. Back left pivot motor (Brushless NEO @ Spark MAX)
-7. Back right pivot motor (Brushless NEO @ Spark MAX)
-8. Front right pivot motor (Brushless NEO @ Spark MAX)
+- Drive subsystem:
+    - Speed motors:
+        1. Front left speed motor (Brushless NEO @ Spark MAX)
+        2. Back left speed motor (Brushless NEO @ Spark MAX)
+        3. Back right speed motor (Brushless NEO @ Spark MAX)
+        4. Front right speed motor (Brushless NEO @ Spark MAX)
+    - Pivot motors:
+        5. Front left pivot motor (Brushless NEO @ Spark MAX)
+        6. Back left pivot motor (Brushless NEO @ Spark MAX)
+        7. Back right pivot motor (Brushless NEO @ Spark MAX)
+        8. Front right pivot motor (Brushless NEO @ Spark MAX)
+- Intake/uptake subsystem:
+  9. Indexer roller left (Brushless NEO 550 @ Spark MAX)
+  10. Indexer roller right (Brushless NEO 550 @ Spark MAX)
+- Shooter subsystem:
+  11. Left shooter flywheel (Brushless NEO @ Spark MAX)
+  12. Right shooter flywheel (Brushless NEO @ Spark MAX)
+  13. Turret turntable motor (Brushless NEO 550 @ Spark MAX)
+      - This doesn't need a CAN ID because it will not require a
+        ~~[CANEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/canencoder)~~
+        [SparkMaxAlternateEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/sparkmaxalternateencoder)
+        -- since we can get the set point from the vision subsystem, we can put
+        this on PWM if we want.
 
 ### PWM ports ###
+
+- Climber subsystem:
+    - (PWM port number?) (name/purpose) motor (Brushless NEO @ Spark MAX)
+        - Is this going to be PWM or CAN?
+    - (PWM port number?) (name/purpose) motor (CIM @ Spark)
+- Intake/uptake subsystem:
+  - (PWM port number?) Uptake roller motor (Mini-CIM @ Spark)
+  - (PWM port number?) Intake axle motor (Mini-CIM @ Spark)
+- Shooter subsystem::
+  - (PWM port numbers?) 2x hood motors (Linear servo @ Rev servo Hub)
 
 ## Subsystems ##
 ### Drive ###
@@ -70,8 +70,12 @@ did](https://github.com/eshsrobotics/2020bot/blob/master/src/main/java/frc/robot
 for the 2019-2020 and 2020-2021 seasons, this year's robot will employ a
 swerve drive using MK3 modules from Swerve Drive Specialties.  Eight brushless
 NEO motors control the swerve modules; their Spark MAX motor controllers are
-daisy-chained in a CAN bus, allowingh us to use the CANSparkMAX [CANEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/canencoder)
-class to access the default encoders for the pivot wheels' motor controllers.
+daisy-chained in a CAN bus, allowingh us to use the CANSparkMAX
+[SparkMaxRelativeEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/RelativeEncoder.html)
+or
+[SparkMaxAlternateEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/sparkmaxalternateencoder)
+classes to access the default and alternate encoders for the pivot wheels'
+motor controllers.
 
 ### Shooter ###
 ![Shooter subsystem, without hood motors or upper flywheel](docs/2022-01-17-frc-shooter.png)
