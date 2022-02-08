@@ -23,6 +23,7 @@ public class CrabDrivingScheme implements DrivingScheme {
     private Gyro gyro = null;
 
     /**
+     * Initializes this object.
      *
      * @param gyro A {@link Gyro} object which is initialized such that the
      * front of the robot points away from the drivers when the gyro angle is 0.
