@@ -8,7 +8,10 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.robot.Constants;
@@ -34,7 +37,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * Rotates the pivot motors to a given set point using PID.
      */
-    private List<SparkMaxPIDController> pidControllers;
+    private List<PIDController> pidControllers;
+
+    /**
+     * Converts inputs from PWM into dutyCycles between zero and one.
+     */
+    private List<DutyCycle> dutyCycles;
 
     private final double P = 0.1;
     private final double I = 1e-4;
@@ -53,9 +61,11 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             reversalFlags = new ArrayList<Boolean>();
             pivotMotors = new ArrayList<CANSparkMax>();
             speedMotors = new ArrayList<CANSparkMax>();
+            dutyCycles = new ArrayList<DutyCycle>();
             Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null });
             Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null });
             Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
+            Collections.addAll(dutyCycles, new DutyCycle[] { null, null, null, null});
 
             speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
@@ -66,7 +76,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-
+            
+            dutyCycles.set(Constants.FRONT_LEFT, new DutyCycle(new DigitalInput(Constants.FRONT_LEFT_ABSOLUTE_PWM_PORT)));
+            dutyCycles.set(Constants.BACK_LEFT, new DutyCycle(new DigitalInput(Constants.BACK_LEFT_ABSOLUTE_PWM_PORT)));
+            dutyCycles.set(Constants.BACK_RIGHT, new DutyCycle(new DigitalInput(Constants.BACK_RIGHT_ABSOLUTE_PWM_PORT)));
+            dutyCycles.set(Constants.FRONT_RIGHT, new DutyCycle(new DigitalInput(Constants.FRONT_RIGHT_ABSOLUTE_PWM_PORT)));
+            
             pivotMotors.forEach(m -> {
                 // When we cut power, the motors should stop pivoting immediately;
                 // otherwise, the slop will throw us off.
@@ -83,20 +98,20 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             e.printStackTrace();
         }
 
-        this.pidControllers = new ArrayList<SparkMaxPIDController>();
+        this.pidControllers = new ArrayList<PIDController>();
         int i = 0;
         for (CANSparkMax pivotMotor : pivotMotors) {
             try {
                 System.out.printf("about to get pidcontroller #%d\n", i++);
-                SparkMaxPIDController pidController = pivotMotor.getPIDController();
+                PIDController pidController = new PIDController(P, I, D);
 
                 // Set PID coefficients.
-                pidController.setP(0.1);
-                pidController.setI(1e-4);
-                pidController.setD(1);
-                pidController.setIZone(0);
-                pidController.setFF(0);
-                pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
+                pidController.setP(P);
+                pidController.setI(I);
+                pidController.setD(D);
+                // pidController.setIZone(Iz);
+                // pidController.setFF(FF);
+                // pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
 
                 pidControllers.add(pidController);
             } catch (Exception e) {
@@ -129,9 +144,22 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             speedMotors.get(i).set(speed);
 
             // Set angle for current pivot motor.
-            double rotations = swerveModuleStates[i].angle.getDegrees() / 360;
-            pidControllers.get(i).setReference(rotations,
-                                               CANSparkMax.ControlType.kPosition);
+            // TODO: What happens if angle is NEGATIVE?
+            double rotations = swerveModuleStates[i].angle.getDegrees() % 360.0;
+
+            // Value is absolute because it does not change on robot power off
+            double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
+
+            double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
+
+            final double MAX_ROTATION_SPEED = 0.5;  
+
+            // TODO: Make sure that deltaDegrees is not too small that the motor stalls (Need to test to find it)
+            if (deltaDegrees > 0) {
+                pivotMotors.get(i).set(deltaDegrees * MAX_ROTATION_SPEED / 360);
+            } else {
+                pivotMotors.get(i).set(-deltaDegrees * MAX_ROTATION_SPEED / 360);
+            }
         }
     }
 }
