@@ -98,6 +98,9 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 pidController.setFF(0);
                 pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
 
+                // Integrated encoder is the feedback device the controller uses by default.
+                // pidController.setFeedbackDevice(pivotMotor.getEncoder());
+
                 pidControllers.add(pidController);
             } catch (Exception e) {
                 System.out.printf("Could not get pid controller: %s\n", e.getMessage());
@@ -111,10 +114,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         shuffleboardTab.addNumber("bLDefEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getEncoder().getPosition());
         shuffleboardTab.addNumber("bRDefEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getEncoder().getPosition());
         
-        shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
     }
 
     @Override
