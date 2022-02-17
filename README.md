@@ -187,3 +187,9 @@ bumpers toward the front center.  The intake rollers can be reversed to
 *reject* a ball that is of the wrong color; to automate this process, a color
 sensor is positioned beneath the top of the intake to ascertain the color of
 the ball.
+
+# Absolute alignment values
+- Front right: ~202.0 degrees
+- Back right: ~255.0 degrees
+- Front left: ~166.0 degrees 
+- Back left: ~17.8 degrees

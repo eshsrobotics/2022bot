@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -52,7 +53,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     private final double P = 0.1;
     private final double I = 1e-4;
-    private final double D = 1;
+    private final double D = 0.05;
     private final double Iz = 0;
     private final double FF = 0;
     private final double MAX_OUTPUT = 1;
@@ -113,6 +114,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 System.out.printf("about to get pidcontroller #%d\n", i++);
                 PIDController pidController = new PIDController(P, I, D);
 
+                // The pidController is supposed to minimize the deviation (error) between
+                // an aboslute angle, in degrees, and a setpoint coming from the human
+                // driver's controller, also in degrees.  To minimize this angle, we need
+                // to be aware that the range "wraps around" between 0 and 360 degrees.
+                pidController.enableContinuousInput(-180, 180);
+
                 // Set PID coefficients.
                 pidController.setP(P);
                 pidController.setI(I);
@@ -156,7 +163,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // value between -1.0 and 1.0.
             double speed = swerveModuleStates[i].speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            speedMotors.get(i).set(speed);
+            // speedMotors.get(i).set(speed);
 
             // Set angle for current pivot motor.
             // TODO: What happens if angle is NEGATIVE?
@@ -169,16 +176,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
 
             // pivotDeltaEntries.get(i).setDouble(deltaDegrees);
-            pivotDeltaEntries.get(i).setDouble(currentAbsoluteAngle);
+            pivotDeltaEntries.get(i).setDouble(deltaDegrees);
 
-            // Percent of the distance we want to rotate relative to our desired degrees in this loop
-            final double MAX_ROTATION_SPEED = 0.5;  
-
-            // TODO: Make sure that deltaDegrees is not too small that the motor stalls (Need to test to find it)
-            if (deltaDegrees > 0) {
-                pivotMotors.get(i).set(deltaDegrees * MAX_ROTATION_SPEED / 360);
-            } else {
-                pivotMotors.get(i).set(-deltaDegrees * MAX_ROTATION_SPEED / 360);
+            if (!pidControllers.get(i).atSetpoint()) {
+                // Percent of the distance we want to rotate relative to our desired degrees in this loop
+                final double MAX_TURNING_RATE = 1.0;
+                pivotMotors.get(i).set(Math.signum(deltaDegrees) * (deltaDegrees / 360) * MAX_TURNING_RATE);
             }
         }
     }
