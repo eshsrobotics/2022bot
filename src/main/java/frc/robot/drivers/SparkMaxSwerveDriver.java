@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -18,6 +19,11 @@ import frc.robot.Constants;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
+     * Stores values so we can see the values of delta degrees
+     */
+    private List<NetworkTableEntry> pivotDeltaEntries;
+
+     /**
      * Controls the speed of the four swerve wheels.
      */
     private List<CANSparkMax> speedMotors;
@@ -62,10 +68,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             pivotMotors = new ArrayList<CANSparkMax>();
             speedMotors = new ArrayList<CANSparkMax>();
             dutyCycles = new ArrayList<DutyCycle>();
+            pivotDeltaEntries = new ArrayList<NetworkTableEntry>();
             Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null });
             Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null });
             Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
             Collections.addAll(dutyCycles, new DutyCycle[] { null, null, null, null});
+            Collections.addAll(pivotDeltaEntries, new NetworkTableEntry[4]);
 
             speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
@@ -121,15 +129,22 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         }
         
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-        shuffleboardTab.addNumber("fLDefEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getEncoder().getPosition());
-        shuffleboardTab.addNumber("fRDefEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getEncoder().getPosition());
-        shuffleboardTab.addNumber("bLDefEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getEncoder().getPosition());
-        shuffleboardTab.addNumber("bRDefEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getEncoder().getPosition());
+        // shuffleboardTab.addNumber("fLDefEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getEncoder().getPosition());
+        // shuffleboardTab.addNumber("fRDefEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getEncoder().getPosition());
+        // shuffleboardTab.addNumber("bLDefEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getEncoder().getPosition());
+        // shuffleboardTab.addNumber("bRDefEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getEncoder().getPosition());
         
-        shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        
+        
+        pivotDeltaEntries.set(Constants.FRONT_LEFT, shuffleboardTab.add("FL delta", 0).getEntry());
+        pivotDeltaEntries.set(Constants.BACK_LEFT, shuffleboardTab.add("BL delta", 0).getEntry());
+        pivotDeltaEntries.set(Constants.BACK_RIGHT, shuffleboardTab.add("BR delta", 0).getEntry());
+        pivotDeltaEntries.set(Constants.FRONT_RIGHT, shuffleboardTab.add("FR delta", 0).getEntry());
+
     }
 
     @Override
@@ -150,8 +165,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // Value is absolute because it does not change on robot power off
             double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
 
+            // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
 
+            // pivotDeltaEntries.get(i).setDouble(deltaDegrees);
+            pivotDeltaEntries.get(i).setDouble(currentAbsoluteAngle);
+
+            // Percent of the distance we want to rotate relative to our desired degrees in this loop
             final double MAX_ROTATION_SPEED = 0.5;  
 
             // TODO: Make sure that deltaDegrees is not too small that the motor stalls (Need to test to find it)
