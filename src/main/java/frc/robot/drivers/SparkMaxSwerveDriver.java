@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -51,6 +52,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      */
     private List<DutyCycle> dutyCycles;
 
+    /**
+     * These angles and speeds is where our drive "wants" to end up.
+     * But it still won't use them unless you call drive(getGoalStates()).
+     */
+    private SwerveModuleState[] goalStates;
+
+
     private final double P = 0.1;
     private final double I = 1e-4;
     private final double D = 0.05;
@@ -65,6 +73,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     public SparkMaxSwerveDriver() {
         // Initialize the swerve motors (pivot and speed.)
         try {
+            goalStates = reset(0);
             reversalFlags = new ArrayList<Boolean>();
             pivotMotors = new ArrayList<CANSparkMax>();
             speedMotors = new ArrayList<CANSparkMax>();
@@ -154,6 +163,50 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     }
 
+    /**
+     * Stores a new direction for the swerve modules to go in.
+     * You can pass these values into drive() using getGoalStates().
+     * 
+     * @param newGoalStates New shopping cart angles and speeds that you want. 
+     */
+    public void setGoalStates(SwerveModuleState[] newGoalStates) {
+        goalStates = newGoalStates;
+    }
+
+    /**
+     * Returns the goal states that were previously set by setGoalStates()
+     * so that you can pass those into drive().
+     * @return Returns the goal states that were passed into setGoalStates().
+     */
+    public SwerveModuleState[] getGoalStates() {
+        return goalStates;
+    }
+
+    /**
+     * Returns {@link SwerveModuleState SwerveModuleStates} where all four pivot wheels
+     * are aligned at the given absolute angle, regardless of where the the wheels were
+     * when the robot was turned on. 
+     * 
+     * @param absoluteAngleDegrees The desired angle for all the swerve modules.
+     *                             An angle of 0 points all modules forward, and is the
+     *                             correct position for teleopInit().  Positive values rotate
+     *                             clockwise and negative values rotate counterclockwise.
+     * @return The states.
+     */
+    public SwerveModuleState[] reset(double absoluteAngleDegrees) {
+        double absoluteAngleRadians = absoluteAngleDegrees * 180 / Math.PI;
+        return new SwerveModuleState[] {
+            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.FRONT_LEFT], 
+                                  new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.BACK_LEFT], 
+                                  new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.BACK_RIGHT], 
+                                  new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.FRONT_RIGHT], 
+                                  new Rotation2d(absoluteAngleRadians))
+        };
+    }
+
     @Override
     public void drive(SwerveModuleState[] swerveModuleStates) {
         // Translates shopping cart speeds and angles into motion.
@@ -176,12 +229,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
 
             // pivotDeltaEntries.get(i).setDouble(deltaDegrees);
-            pivotDeltaEntries.get(i).setDouble(deltaDegrees);
+            pivotDeltaEntries.get(i).setDouble(currentAbsoluteAngle);
 
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
                 final double MAX_TURNING_RATE = 1.0;
-                pivotMotors.get(i).set(Math.signum(deltaDegrees) * (deltaDegrees / 360) * MAX_TURNING_RATE);
+                pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
             }
         }
     }

@@ -53,6 +53,20 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
+     * Returns true if there is no human input on the controller -- in other
+     * words, if {@link InputSubsystem#getLeftRight getLeftRight()},
+     * {@link InputSubsystem#getFrontBack getFrontBack()}, and 
+     * {@link InputSubsystem#getRotation getRotation()} are all in the dead zone. 
+     */
+    public boolean joysticksAtNeutral() {
+        if (frontBack == 0 && leftRight == 0 && rotation == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * Continuously check the human input devices and update our private variables.
      */
     @Override

@@ -189,7 +189,8 @@ sensor is positioned beneath the top of the intake to ascertain the color of
 the ball.
 
 # Absolute alignment values
-- Front right: ~202.0 degrees
-- Back right: ~255.0 degrees
 - Front left: ~166.0 degrees 
 - Back left: ~17.8 degrees
+- Back right: ~255.0 degrees
+- Front right: ~202.0 degrees
+

@@ -77,6 +77,9 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    // When teleop begins, point all wheels forward.  This is a gradual process, and it'll take
+    // a few milliseconds to complete.
+    m_robotContainer.zeroPosition();
   }
 
   /** This function is called periodically during operator control. */
@@ -87,6 +90,9 @@ public class Robot extends TimedRobot {
   public void testInit() {
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
+
+    // Similarly to teleopInit(), when we are in test mode, point all swerve modules forward.
+    m_robotContainer.zeroPosition();
   }
 
   /** This function is called periodically during test mode. */

@@ -35,6 +35,15 @@ public class RobotContainer {
   }
 
   /**
+   * The default position of the swerve modules is facing straight forward, with the gear side of the modules
+   * pointing inward.  We call that value "0 degrees" for each swerve module.  This function causes the drive
+   * to seek that state.
+   */
+  public void zeroPosition() {
+    swerveDriveSubsystem.initialPosition();
+  }
+
+  /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link GenericHID} or one of its subclasses ({@link
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link

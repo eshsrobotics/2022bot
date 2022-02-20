@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.lang.reflect.Array;
+
 import com.fasterxml.jackson.databind.ser.std.NumberSerializers.IntLikeSerializer;
 
 /**
@@ -173,4 +175,12 @@ public final class Constants {
 
         /** When declaring an alternate encoder we need to know the clicks per revolution. */
         public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;
+
+        /** Displacement of module from actual zero, used to reset them to zero relative to the whole robot. */
+        public static double[] displacementPivotAnglesDegrees = {
+                166.0, // Front Left
+                17.8, // Back Left
+                255.0, // Back Right
+                202.0  // Front Right
+        };
 }
