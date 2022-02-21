@@ -191,13 +191,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
         double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.FRONT_LEFT], 
+            new SwerveModuleState(absoluteAngleDegrees, 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.BACK_LEFT], 
+            new SwerveModuleState(absoluteAngleDegrees, 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.BACK_RIGHT], 
+            new SwerveModuleState(absoluteAngleDegrees, 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.FRONT_RIGHT], 
+            new SwerveModuleState(absoluteAngleDegrees, 
                                   new Rotation2d(absoluteAngleRadians))
         };
     }
@@ -216,12 +216,17 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // speedMotors.get(i).set(speed);
 
             // Set angle for current pivot motor.
-            // TODO: What happens if angle is NEGATIVE?
-            double rotations = swerveModuleStates[i].angle.getDegrees() % 360.0;
+
+            // This is the angle coming from the shopping cart angles in the swerveModuleStates[]
+            // argument.  The range is always [-180, 180].
+            double rotations = swerveModuleStates[i].angle.getDegrees() + 180.0;
             entries.get(i + 8).setDouble(rotations);
 
-            // Value is absolute because it does not change on robot power off
+            // The absolute position of the swerve wheels.  We need the displacement offsets
+            // in order to force the wheels into the angles we actually want.
             double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
+            double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
+            currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360;
             entries.get(i + 4).setDouble(currentAbsoluteAngle);
 
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
