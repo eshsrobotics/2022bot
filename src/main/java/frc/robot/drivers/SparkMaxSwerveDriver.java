@@ -83,7 +83,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             Collections.addAll(speedMotors, new CANSparkMax [4]);
             Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
             Collections.addAll(dutyCycles, new DutyCycle[4]);
-            Collections.addAll(entries, new NetworkTableEntry[12]);
+            Collections.addAll(entries, new NetworkTableEntry[16]);
 
             speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
@@ -155,6 +155,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             entries.set(j + 0, shuffleboardTab.add(String.format("%s delta", s), 0).getEntry());
             entries.set(j + 4, shuffleboardTab.add(String.format("%s angle", s), 0).getEntry());
             entries.set(j + 8, shuffleboardTab.add(String.format("%s goal", s), 0).getEntry());
+            entries.set(j + 12, shuffleboardTab.add(String.format("%s speed", s), 0).getEntry());
         }
     }
 
@@ -213,7 +214,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // value between -1.0 and 1.0.
             double speed = swerveModuleStates[i].speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            // speedMotors.get(i).set(speed);
+            if (Math.abs(speed) <= Constants.JOYSTICK_DEAD_ZONE) {
+                speedMotors.get(i).stopMotor();
+                entries.get(i + 12).setDouble(0);
+            } else {
+                speedMotors.get(i).set(speed);
+                entries.get(i + 12).setDouble(speedMotors.get(i).get());
+            }
 
             // Set angle for current pivot motor.
 
@@ -226,7 +233,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // in order to force the wheels into the angles we actually want.
             double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
             double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
-            currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360;
+            currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
             entries.get(i + 4).setDouble(currentAbsoluteAngle);
 
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
