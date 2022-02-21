@@ -107,7 +107,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.driver = new SparkMaxSwerveDriver();
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-        changeSwerveAngleEntry = shuffleboardTab.add("SetSwerveAngle", lastAngleFromShuffleboard).getEntry();
+        changeSwerveAngleEntry = shuffleboardTab.add("Set Swerve Angle", lastAngleFromShuffleboard).getEntry();
       }
 
     /**

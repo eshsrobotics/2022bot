@@ -23,7 +23,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * Stores values so we can see the values of delta degrees
      */
-    private List<NetworkTableEntry> pivotDeltaEntries;
+    private List<NetworkTableEntry> entries;
 
      /**
      * Controls the speed of the four swerve wheels.
@@ -59,9 +59,9 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     private SwerveModuleState[] goalStates;
 
 
-    private final double P = 0.1;
-    private final double I = 1e-4;
-    private final double D = 0.05;
+    private final double P = 1;
+    private final double I = 1;
+    private final double D = 0;
     private final double Iz = 0;
     private final double FF = 0;
     private final double MAX_OUTPUT = 1;
@@ -78,12 +78,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             pivotMotors = new ArrayList<CANSparkMax>();
             speedMotors = new ArrayList<CANSparkMax>();
             dutyCycles = new ArrayList<DutyCycle>();
-            pivotDeltaEntries = new ArrayList<NetworkTableEntry>();
-            Collections.addAll(pivotMotors, new CANSparkMax[] { null, null, null, null });
-            Collections.addAll(speedMotors, new CANSparkMax [] { null, null, null, null });
+            entries = new ArrayList<NetworkTableEntry>();
+            Collections.addAll(pivotMotors, new CANSparkMax[4]);
+            Collections.addAll(speedMotors, new CANSparkMax [4]);
             Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
-            Collections.addAll(dutyCycles, new DutyCycle[] { null, null, null, null});
-            Collections.addAll(pivotDeltaEntries, new NetworkTableEntry[4]);
+            Collections.addAll(dutyCycles, new DutyCycle[4]);
+            Collections.addAll(entries, new NetworkTableEntry[12]);
 
             speedMotors.set(Constants.FRONT_LEFT, new CANSparkMax(Constants.FRONT_LEFT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
             speedMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_DRIVE_MOTOR_CAN_ID, MotorType.kBrushless));
@@ -145,22 +145,17 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         }
         
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-        // shuffleboardTab.addNumber("fLDefEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getEncoder().getPosition());
-        // shuffleboardTab.addNumber("fRDefEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getEncoder().getPosition());
-        // shuffleboardTab.addNumber("bLDefEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getEncoder().getPosition());
-        // shuffleboardTab.addNumber("bRDefEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getEncoder().getPosition());
-        
         // shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
         // shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
         // shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());        
         
-        
-        pivotDeltaEntries.set(Constants.FRONT_LEFT, shuffleboardTab.add("FL delta", 0).getEntry());
-        pivotDeltaEntries.set(Constants.BACK_LEFT, shuffleboardTab.add("BL delta", 0).getEntry());
-        pivotDeltaEntries.set(Constants.BACK_RIGHT, shuffleboardTab.add("BR delta", 0).getEntry());
-        pivotDeltaEntries.set(Constants.FRONT_RIGHT, shuffleboardTab.add("FR delta", 0).getEntry());
-
+        for (int j = 0; j < 4; j++) {
+            String s = Constants.CORNER_NAME_ABBREVS[j];
+            entries.set(j + 0, shuffleboardTab.add(String.format("%s delta", s), 0).getEntry());
+            entries.set(j + 4, shuffleboardTab.add(String.format("%s angle", s), 0).getEntry());
+            entries.set(j + 8, shuffleboardTab.add(String.format("%s goal", s), 0).getEntry());
+        }
     }
 
     /**
@@ -194,23 +189,25 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * @return The states.
      */
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
-        double absoluteAngleRadians = absoluteAngleDegrees * 180 / Math.PI;
+        double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.FRONT_LEFT], 
+            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.FRONT_LEFT], 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.BACK_LEFT], 
+            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.BACK_LEFT], 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.BACK_RIGHT], 
+            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.BACK_RIGHT], 
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees + Constants.displacementPivotAnglesDegrees[Constants.FRONT_RIGHT], 
+            new SwerveModuleState(absoluteAngleDegrees + Constants.DISPLACEMENT_ANGLES[Constants.FRONT_RIGHT], 
                                   new Rotation2d(absoluteAngleRadians))
         };
     }
 
     @Override
     public void drive(SwerveModuleState[] swerveModuleStates) {
+        ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
+
         // Translates shopping cart speeds and angles into motion.
-        for  (int i = 0; i < swerveModuleStates.length; i++)  {
+        for (int i = 0; i < swerveModuleStates.length; i++)  {
 
             // Translate speed from units of meters per second into a unitless
             // value between -1.0 and 1.0.
@@ -221,15 +218,15 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // Set angle for current pivot motor.
             // TODO: What happens if angle is NEGATIVE?
             double rotations = swerveModuleStates[i].angle.getDegrees() % 360.0;
+            entries.get(i + 8).setDouble(rotations);
 
             // Value is absolute because it does not change on robot power off
             double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
+            entries.get(i + 4).setDouble(currentAbsoluteAngle);
 
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
-
-            // pivotDeltaEntries.get(i).setDouble(deltaDegrees);
-            pivotDeltaEntries.get(i).setDouble(currentAbsoluteAngle);
+            entries.get(i + 0).setDouble(deltaDegrees);
 
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
