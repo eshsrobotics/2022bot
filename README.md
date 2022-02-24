@@ -174,16 +174,151 @@ functions will monotonically increase as the distance increases.
 ### Intake ###
 ![Drive and intake subsystems, including roller positions but without intake motors](docs/2022-01-17-frc-chassis.png)
 
-The intake subsystem is roughly divided into two parts:
+The intake subsystem is divided into three parts:
 
-1. The intake rollers, which use 3D-printed miniature Mecanum wheels to
-direct any cargo placed beneath them to the maw of the chassis; and
-2. The *indexer*, which is the portion of the intake that can suspend a ball
-   until the human driver decides to release it to the [shooter](#shooter).
+1. The *intake*, which consists of:
+    - *Intake rollers* that use 3D-printed miniature Mecanum wheels to direct
+      any cargo placed beneath them to the maw of the chassis; and
+    - A downward-facing *intake color sensor* positioned at the top of the
+      intake that ascertains whether a ball of the wrong color is positioned
+      beneath the intake;
+2. The *uptake*, which consists of:
+   - *Uptake rollers*, which move balls up from the intake to the indexer; and
+   - *The uptake sensor*, which tells us if a ball is detected within the
+     uptake (i.e., it has passed the intake and it has not reached the
+     indexer.)
+3. The *indexer*, which consists of:
+    - *Indexer belts*, which use encoders to offer precise control over
+    when ball is released into the [shooter](#shooter); and
+    - *The indexer sensor*, which tells if a ball is caught in the indexer.
 
 For the intake rollers to work properly, cargo must be trapped in front of the
 robot and pressed beneath the rollers so that they roll along the front
-bumpers toward the front center.  The intake rollers can be reversed to
-*reject* a ball that is of the wrong color; to automate this process, a color
-sensor is positioned beneath the top of the intake to ascertain the color of
-the ball.
+bumpers toward the front center.
+
+#### Algorithm ####
+
+The subsystem is controlled by a state machine.  The overarching goal is to
+immediately transfer any ball that was not rejected by the intake into the
+indexer, where it waits to be shot.
+
+![State diagram for intake subsystem](docs/intakeSubsystemStateDiagram.png)
+
+1. **Start**
+
+    Initial state.
+
+    *Next states*:
+
+    - **Deploy** (unconditionally.)
+
+2. **Deploy**
+
+    In this state, the subsystem uses pneumatics to deploy the intake rollers
+    to a down position.  The private `intakeAndUptakeEnabled` variable is set
+    to `true`.
+
+    *Next states*:
+
+    - **Deploy** (as long as the intake rollers are not down; this can be a
+      simple timer.)
+    - **Intake/Uptake On** (otherwise.)
+
+3. Intake enabled branch:
+
+    1. **Intake/Uptake On**
+
+        In this state, the subsystem performs nominal ball intake.  In other words:
+
+        - The *intake rollers*, *uptake rollers*, and *intake belts* are
+          activated, bringing balls in and up.
+        - If a ball of the wrong color is detected by the *intake color sensor*,
+          then the intake rollers will reverse until the sensor is clear.
+
+        *Next states*:
+
+        - **Intake/Uptake Off** (if the `intakeAndUptakeEnabled` private variable
+          is set to `false`; this can happen if a human driver command or the
+          climber subsystem calls the intake subsystem's public `intakeDisable()`
+          method.)
+        - **Intake/Uptake On + Ball in Index** (if the *indexer sensor* detects
+          the presence of a ball and the intake/uptake rollers are spun up -- the
+          spin-up can use a simple timer.)
+        - **Intake/Uptake On** (otherwise.)
+
+    2. **Intake/Uptake On + Ball in Index**
+
+        In this state, the system is ready to release a ball to the shooter.
+
+        - The *indexer belts* are deactivated.
+        - The *intake rollers* and *uptake rollers* remain enabled.
+
+        *Next states*:
+
+        - **Intake/Uptake Off** (if the `intakeAndUptakeEnabled` private variable
+          is set to `false`; this can happen if a human driver command or the
+          climber subsystem calls the subsystem's public `intakeDisable()`
+          method.)
+        - **Intake/Uptake On + Firing** (if the `indexerReleased` private
+          variable is set to `true`; this can happen if a human driver command or
+          the vision subsystem has called the intake subsystem's public
+          `releaseToShooter()` method.)
+        - **Intake/Uptake On + Ball in Index** (otherwise.)
+
+    3. **Intake/Uptake On + Firing**
+
+        In this state, the *indexer belts* and *uptake rollers* release balls
+        into the shooter until the uptake and indexer are empty.
+
+        *Next states*:
+
+        - **Intake/Uptake On** (if a minimum amount of time has passed and the
+          *indexer sensor* does not detect a ball.)
+        - **Intake/Uptake On + Firing** (otherwise.)
+
+4. Intake disabled branch:
+
+    1. **Intake/Uptake Off**
+
+        In this state, the *intake rollers*, *uptake rollers*, and *intake
+        belts* spin down and performs no intake or uptake.
+
+        *Next states*:
+
+        - **Intake/Uptake On** (if the `intakeAndUptakeEnabled` private
+          variable is set to `true`; this can happen if a human driver command
+          or autonomous calls the intake subsystem's public `intakeEnable()`
+          method.)
+        - **Intake/Uptake Off + Ball in Index** (if the *indexer sensor* detects
+          the presence of a ball and the intake/uptake rollers are spun down -- the
+          spin-down can use a simple timer.)
+        - **Intake/Uptake Off** (otherwise.)
+
+    2. **Intake/Uptake Off + Ball in Index**
+
+        In this state, the system is ready to release a ball to the shooter.
+        The *indexer belts*, *intake rollers*, and *uptake rollers* are
+        deactivated.
+
+        *Next states*:
+
+        - **Intake/Uptake On** (if the `intakeAndUptakeEnabled` private
+          variable is set to `true`; this can happen if a human driver command
+          or autonomous calls the intake subsystem's public `intakeEnable()`
+          method.)
+        - **Intake/Uptake Off + Firing** (if the `indexerReleased` private
+          variable is set to `true`; this can happen if a human driver command or
+          the vision subsystem has called the intake subsystem's public
+          `releaseToShooter()` method.)
+        - **Intake/Uptake Off + Ball in Index** (otherwise.)
+
+    3. **Intake/Uptake Off + Firing**
+
+        In this state, the *indexer belts* and *uptake rollers* release balls
+        into the shooter until the uptake and indexer are empty.
+
+        *Next states*:
+
+        - **Intake/Uptake Off** (if a minimum amount of time has passed and the
+          *indexer sensor* does not detect a ball.)
+        - **Intake/Uptake Off + Firing** (otherwise.)
