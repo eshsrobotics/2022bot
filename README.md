@@ -8,7 +8,7 @@ This file contains [motor and port assignments](#motor-and-port-assignments), th
 ## Control scheme ##
 
 _Note_: for field-oriented swerve to work, the robot must start the match with
-its front side facing away from the driver.__
+its front side facing away from the driver.
 
 - XBox controller:
   1. Left joystick: **Field-oriented strafing**
@@ -216,7 +216,7 @@ indexer, where it waits to be shot.
 
     In this state, the subsystem uses pneumatics to deploy the intake rollers
     to a down position.  The private `intakeAndUptakeEnabled` variable is set
-    to `true`.
+    to `true` and the private `indexerReleased` variable is set to `false`.
 
     *Next states*:
 
@@ -268,7 +268,8 @@ indexer, where it waits to be shot.
     3. **Intake/Uptake On + Firing**
 
         In this state, the *indexer belts* and *uptake rollers* release balls
-        into the shooter until the uptake and indexer are empty.
+        into the shooter until the uptake and indexer are empty.  When this is
+        done, `indexerReleased` is set back to `false`.
 
         *Next states*:
 
@@ -315,7 +316,8 @@ indexer, where it waits to be shot.
     3. **Intake/Uptake Off + Firing**
 
         In this state, the *indexer belts* and *uptake rollers* release balls
-        into the shooter until the uptake and indexer are empty.
+        into the shooter until the uptake and indexer are empty.  When this is
+        done, `indexerReleased` is set back to `false`.
 
         *Next states*:
 
