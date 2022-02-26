@@ -27,8 +27,9 @@ public class InputSubsystem extends SubsystemBase {
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-
-
+    private boolean aButton = false;
+    
+    
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
@@ -52,6 +53,10 @@ public class InputSubsystem extends SubsystemBase {
         return rotation;
     }
 
+    public boolean getAButton() {
+        return aButton;
+    }
+
     /**
      * Continuously check the human input devices and update our private variables.
      */
@@ -67,6 +72,7 @@ public class InputSubsystem extends SubsystemBase {
             frontBack += controller.getLeftY();
             leftRight += controller.getLeftX();
             rotation += controller.getRightX();
+            aButton = controller.getAButton();
         }
 
         // Clamp values that are too high.
@@ -106,5 +112,6 @@ public class InputSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
         shuffleboardTab.addNumber("rotation", () -> rotation);
+        shuffleboardTab.addBoolean("aButton", () -> aButton);
     }
 }

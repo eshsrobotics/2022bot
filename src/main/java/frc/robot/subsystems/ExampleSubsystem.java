@@ -4,15 +4,24 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ExampleSubsystem extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
-  public ExampleSubsystem() {}
+  public ExampleSubsystem() {
+  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    MotorController m = new PWMSparkMax(1);
+    m.set(0.6);
+   // System.Threading.wait(5);
+    m.set(0);
   }
 
   @Override
