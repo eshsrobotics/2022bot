@@ -6,7 +6,7 @@ import frc.robot.driveSchemes.DrivingScheme;
 
 /**
  * SwerveDrivers take four
- * {@link SwerveModuleState Swerve Module States} and commands the robot to
+ * {@link SwerveModuleState Swerve Module States} and command the robot to
  * drive with them.
  *
  * @see {@link DrivingScheme}, the interface which produces the

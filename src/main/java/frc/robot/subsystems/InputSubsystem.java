@@ -27,8 +27,8 @@ public class InputSubsystem extends SubsystemBase {
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-    
-    
+
+
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
@@ -79,7 +79,7 @@ public class InputSubsystem extends SubsystemBase {
         if (Math.abs(rotation) > 1.0) {
             rotation = Math.signum(rotation);
         }
-        
+
         // Deadzone values that are too low
         if (Math.abs(frontBack) < Constants.JOYSTICK_DEAD_ZONE) {
             frontBack = 0;
@@ -101,6 +101,7 @@ public class InputSubsystem extends SubsystemBase {
         if (!controller.isConnected()) {
             System.err.println("Warning: Xbox controller disconnected");
         }
+
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);

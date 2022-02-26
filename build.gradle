@@ -88,6 +88,12 @@ deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
 wpi.java.configureTestTasks(test)
 
+// Use the command './gradlew showCache' to see what this project's JAR
+// dependencies are.
+task showCache doLast() {
+    configurations.compileClasspath.each { println it }
+}
+
 // Do NOT include the SparkMax-java-1.5.4 library in 2022bot.jar.
 //
 // This is important because REVLib publishes two separate libraries have

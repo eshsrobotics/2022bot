@@ -125,8 +125,12 @@ public final class Constants {
          */
         public static double WHEEL_BASE_LENGTH_METERS = 22.5 /* inches */ / 12 * FEET_TO_METERS;
 
-        private static double WHEEL_BASE_DIAGONAL_METERS = Math.sqrt(WHEEL_BASE_WIDTH_METERS * WHEEL_BASE_WIDTH_METERS +
-                        WHEEL_BASE_LENGTH_METERS * WHEEL_BASE_LENGTH_METERS);
+        /**
+         * Length of the diagonal of the wheel base.  Needed to get the diameter of the
+         * wheel base's circumcircle for a later calculation.
+         */
+        private static double WHEEL_BASE_DIAGONAL_METERS = Math.hypot(WHEEL_BASE_WIDTH_METERS,
+                                                                      WHEEL_BASE_LENGTH_METERS);
 
         /**
          * Ratio for how many revolutions of the pivot motor correspond to one full
