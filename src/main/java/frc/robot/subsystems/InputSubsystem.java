@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.Constants;
 
 /**
@@ -28,8 +29,9 @@ public class InputSubsystem extends SubsystemBase {
     private double leftRight = 0;
     private double rotation = 0;
     private boolean aButton = false;
-    
-    
+    private Button fireButton = null;
+
+
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
@@ -106,8 +108,13 @@ public class InputSubsystem extends SubsystemBase {
         controller = new XboxController(Constants.XBOX_CONTROLLER_PORT);
         if (!controller.isConnected()) {
             System.err.println("Warning: Xbox controller disconnected");
+        } else {
+            // Right now, there's only one controller.  That could be a problem later
+            // when we have two controllers hooked up (one for driving, one for gunnery.)
+            fireButton = new Button(() -> {
+                return controller.getRightBumper();
+            });
         }
-
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
