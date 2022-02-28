@@ -9,8 +9,10 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -23,6 +25,7 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private InputSubsystem inputSubsystem = null;
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
+  private ShooterSubsystem shooterSubsystem = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
@@ -30,6 +33,8 @@ public class RobotContainer {
   public RobotContainer() {
     inputSubsystem = new InputSubsystem();
     this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem);
+    shooterSubsystem = new ShooterSubsystem();
+
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -40,7 +45,20 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {}
+  private void configureButtonBindings() {
+    inputSubsystem.hoodUpButton().whenHeld(new InstantCommand(() -> {
+      shooterSubsystem.raiseHood();
+    }));
+    inputSubsystem.hoodUpButton().whenReleased(new InstantCommand(() -> {
+      shooterSubsystem.stopHood();
+    }));
+    inputSubsystem.hoodDownButton().whenHeld(new InstantCommand(() -> {
+      shooterSubsystem.lowerHood();
+    }));
+    inputSubsystem.hoodDownButton().whenReleased(new InstantCommand(() -> {
+      shooterSubsystem.stopHood();
+    }));
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

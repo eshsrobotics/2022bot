@@ -29,8 +29,16 @@ public class InputSubsystem extends SubsystemBase {
     private double leftRight = 0;
     private double rotation = 0;
     private boolean aButton = false;
+
+    /**
+     * A button that triggers a manual release, to the shooter, of a ball
+     * captured by the indexer.  Nominally the release is automatic upon finding
+     * a vision solution.
+     */
     private Button fireButton = null;
 
+    private Button hoodUpButton_ = null;
+    private Button hoodDownButton_ = null;
 
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
@@ -57,6 +65,14 @@ public class InputSubsystem extends SubsystemBase {
 
     public boolean getAButton() {
         return aButton;
+    }
+
+    public Button hoodUpButton() {
+        return hoodUpButton_;
+    }
+
+    public Button hoodDownButton() {
+        return hoodDownButton_;
     }
 
     /**
@@ -114,7 +130,16 @@ public class InputSubsystem extends SubsystemBase {
             fireButton = new Button(() -> {
                 return controller.getRightBumper();
             });
+            hoodUpButton_ = new Button(() -> {
+                int dpadAngle = controller.getPOV();
+                return (dpadAngle < 45 || dpadAngle > 315);
+            });
+            hoodDownButton_ = new Button(()->{
+                int dpadAngle = controller.getPOV();
+                return (dpadAngle > 135 && dpadAngle < 225);
+            });
         }
+
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);

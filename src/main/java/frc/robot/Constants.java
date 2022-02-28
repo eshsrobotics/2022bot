@@ -93,12 +93,23 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT_TURN_MOTOR_CAN_ID = FRONT_RIGHT + 5;
 
+        //////////////////////
+        // Controller ports //
+        //////////////////////
+
         /**
          * We need to make an assumption on where the Xbox controllers are plugged in.
          * This value may change if you plug other human input devices into the driver
          * station first.
          */
         public static int XBOX_CONTROLLER_PORT = 0;
+
+        ///////////////
+        // PWM ports //
+        ///////////////
+
+        public static int HOOD_LEFT_SERVO_PORT = 2;
+        public static int HOOD_RIGHT_SERVO_PORT = 3;
 
         /**
          * Conversion factor for Feet to Meters
