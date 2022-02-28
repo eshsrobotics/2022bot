@@ -13,6 +13,7 @@ import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.Button;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -46,18 +47,25 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    inputSubsystem.hoodUpButton().whenHeld(new InstantCommand(() -> {
-      shooterSubsystem.raiseHood();
-    }));
-    inputSubsystem.hoodUpButton().whenReleased(new InstantCommand(() -> {
-      shooterSubsystem.stopHood();
-    }));
-    inputSubsystem.hoodDownButton().whenHeld(new InstantCommand(() -> {
-      shooterSubsystem.lowerHood();
-    }));
-    inputSubsystem.hoodDownButton().whenReleased(new InstantCommand(() -> {
-      shooterSubsystem.stopHood();
-    }));
+    Button hoodUpButton = inputSubsystem.hoodUpButton();
+    if (hoodUpButton != null) {
+      hoodUpButton.whenHeld(new InstantCommand(() -> {
+        shooterSubsystem.raiseHood();
+      }));
+      hoodUpButton.whenReleased(new InstantCommand(() -> {
+        shooterSubsystem.stopHood();
+      }));
+    }
+
+    Button hoodDownButton = inputSubsystem.hoodDownButton();
+    if (hoodDownButton != null) {
+      hoodDownButton.whenHeld(new InstantCommand(() -> {
+        shooterSubsystem.lowerHood();
+      }));
+      hoodDownButton.whenReleased(new InstantCommand(() -> {
+        shooterSubsystem.stopHood();
+      }));
+    }
   }
 
   /**

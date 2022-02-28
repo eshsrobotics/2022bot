@@ -132,7 +132,7 @@ public class InputSubsystem extends SubsystemBase {
             });
             hoodUpButton_ = new Button(() -> {
                 int dpadAngle = controller.getPOV();
-                return (dpadAngle < 45 || dpadAngle > 315);
+                return (dpadAngle == 0);
             });
             hoodDownButton_ = new Button(()->{
                 int dpadAngle = controller.getPOV();

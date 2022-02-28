@@ -28,7 +28,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * raises and lowers.  When the user is not actively driving the position,
      * the hood will stop moving.
      */
-    private static final double HOOD_INCREMENT_VALUE = 0.1;
+    private static final double HOOD_INCREMENT_VALUE = 0.01;
 
     private PWM leftServo = null;
     private PWM rightServo = null;
@@ -65,6 +65,7 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void raiseHood() {
         currentHoodIncrement = HOOD_INCREMENT_VALUE;
+        System.out.printf("CurrentPosition = %.1f.  Increment set to %.1f.", currentHoodPosition, currentHoodIncrement);
     }
 
     /**
@@ -72,6 +73,7 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void lowerHood() {
         currentHoodIncrement = -HOOD_INCREMENT_VALUE;
+        System.out.printf("CurrentPosition = %.1f.  Increment set to %.1f.", currentHoodPosition, currentHoodIncrement);
     }
 
     /**
@@ -79,5 +81,6 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void stopHood() {
         currentHoodIncrement = 0;
+        System.out.printf("CurrentPosition = %.1f.  Increment set to %.1f.", currentHoodPosition, currentHoodIncrement);
     }
 }

@@ -17,11 +17,6 @@ public class ExampleSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    MotorController m = new PWMSparkMax(1);
-    m.set(0.6);
-   // System.Threading.wait(5);
-    m.set(0);
   }
 
   @Override
