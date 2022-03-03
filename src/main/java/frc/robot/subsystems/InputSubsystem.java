@@ -27,13 +27,13 @@ public class InputSubsystem extends SubsystemBase {
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-    
-    
+
+
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
     public double getFrontBack() {
-        return frontBack;
+        return -frontBack;
     }
 
     /**
@@ -55,8 +55,8 @@ public class InputSubsystem extends SubsystemBase {
     /**
      * Returns true if there is no human input on the controller -- in other
      * words, if {@link InputSubsystem#getLeftRight getLeftRight()},
-     * {@link InputSubsystem#getFrontBack getFrontBack()}, and 
-     * {@link InputSubsystem#getRotation getRotation()} are all in the dead zone. 
+     * {@link InputSubsystem#getFrontBack getFrontBack()}, and
+     * {@link InputSubsystem#getRotation getRotation()} are all in the dead zone.
      */
     public boolean joysticksAtNeutral() {
         if (frontBack == 0 && leftRight == 0 && rotation == 0) {
@@ -65,7 +65,7 @@ public class InputSubsystem extends SubsystemBase {
             return false;
         }
     }
-    
+
     /**
      * Continuously check the human input devices and update our private variables.
      */
@@ -93,7 +93,7 @@ public class InputSubsystem extends SubsystemBase {
         if (Math.abs(rotation) > 1.0) {
             rotation = Math.signum(rotation);
         }
-        
+
         // Deadzone values that are too low
         if (Math.abs(frontBack) < Constants.JOYSTICK_DEAD_ZONE) {
             frontBack = 0;

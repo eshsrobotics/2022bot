@@ -81,7 +81,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             entries = new ArrayList<NetworkTableEntry>();
             Collections.addAll(pivotMotors, new CANSparkMax[4]);
             Collections.addAll(speedMotors, new CANSparkMax [4]);
-            Collections.addAll(reversalFlags, new Boolean[] { true, true, false, false });
+            Collections.addAll(reversalFlags, new Boolean[] { false, false, false, false });
+            // reversalFlags.set(Constants.FRONT_LEFT, true);
+            reversalFlags.set(Constants.FRONT_RIGHT, true);
+            reversalFlags.set(Constants.BACK_RIGHT, true);
             Collections.addAll(dutyCycles, new DutyCycle[4]);
             Collections.addAll(entries, new NetworkTableEntry[16]);
 
@@ -94,12 +97,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             pivotMotors.set(Constants.FRONT_RIGHT, new CANSparkMax(Constants.FRONT_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
-            
+
             dutyCycles.set(Constants.FRONT_LEFT, new DutyCycle(new DigitalInput(Constants.FRONT_LEFT_ABSOLUTE_PWM_PORT)));
             dutyCycles.set(Constants.BACK_LEFT, new DutyCycle(new DigitalInput(Constants.BACK_LEFT_ABSOLUTE_PWM_PORT)));
             dutyCycles.set(Constants.BACK_RIGHT, new DutyCycle(new DigitalInput(Constants.BACK_RIGHT_ABSOLUTE_PWM_PORT)));
             dutyCycles.set(Constants.FRONT_RIGHT, new DutyCycle(new DigitalInput(Constants.FRONT_RIGHT_ABSOLUTE_PWM_PORT)));
-            
+
             pivotMotors.forEach(m -> {
                 // When we cut power, the motors should stop pivoting immediately;
                 // otherwise, the slop will throw us off.
@@ -110,6 +113,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 // whole rotations into CANEncoder.setReference().
                 m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
             });
+
+            // Inverts drive motors based on reversal flags list
+            for (int i = 0; i < 4; i++) {
+                var m = speedMotors.get(i);
+                m.setInverted(reversalFlags.get(i));
+            }
 
         } catch (Throwable e) {
             System.out.printf("Exception thrown: %s", e.getMessage());
@@ -143,13 +152,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 e.printStackTrace();
             }
         }
-        
+
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
         // shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
         // shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
         // shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());        
-        
+        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
+
         for (int j = 0; j < 4; j++) {
             String s = Constants.CORNER_NAME_ABBREVS[j];
             entries.set(j + 0, shuffleboardTab.add(String.format("%s delta", s), 0).getEntry());
@@ -162,8 +171,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * Stores a new direction for the swerve modules to go in.
      * You can pass these values into drive() using getGoalStates().
-     * 
-     * @param newGoalStates New shopping cart angles and speeds that you want. 
+     *
+     * @param newGoalStates New shopping cart angles and speeds that you want.
      */
     public void setGoalStates(SwerveModuleState[] newGoalStates) {
         goalStates = newGoalStates;
@@ -181,8 +190,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * Returns {@link SwerveModuleState SwerveModuleStates} where all four pivot wheels
      * are aligned at the given absolute angle, regardless of where the the wheels were
-     * when the robot was turned on. 
-     * 
+     * when the robot was turned on.
+     *
      * @param absoluteAngleDegrees The desired angle for all the swerve modules.
      *                             An angle of 0 points all modules forward, and is the
      *                             correct position for teleopInit().  Positive values rotate
@@ -192,13 +201,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
         double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(absoluteAngleDegrees, 
+            new SwerveModuleState(absoluteAngleDegrees,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees, 
+            new SwerveModuleState(absoluteAngleDegrees,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees, 
+            new SwerveModuleState(absoluteAngleDegrees,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees, 
+            new SwerveModuleState(absoluteAngleDegrees,
                                   new Rotation2d(absoluteAngleRadians))
         };
     }

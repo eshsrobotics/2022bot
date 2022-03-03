@@ -99,17 +99,17 @@ public final class Constants {
          * The PWM port where the absolute position of the pivot motor is acquired.
          */
         public static final int FRONT_LEFT_ABSOLUTE_PWM_PORT = FRONT_LEFT + 0;
-        
+
         /**
          * The PWM port where the absolute position of the pivot motor is acquired.
          */
         public static final int BACK_LEFT_ABSOLUTE_PWM_PORT = BACK_LEFT + 0;
-        
+
         /**
          * The PWM port where the absolute position of the pivot motor is acquired.
          */
         public static final int BACK_RIGHT_ABSOLUTE_PWM_PORT = BACK_RIGHT + 0;
-        
+
         /**
          * The PWM port where the absolute position of the pivot motor is acquired.
          */
