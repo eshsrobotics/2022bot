@@ -58,14 +58,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      */
     private SwerveModuleState[] goalStates;
 
-
-    private final double P = 1;
-    private final double I = 1;
-    private final double D = 0;
-    private final double Iz = 0;
-    private final double FF = 0;
-    private final double MAX_OUTPUT = 1;
-    private final double MIN_OUTPUT = -1;
+    // Manually-determined PID for the pivot motors.
+    //
+    // It took a long time to come up with these values.  Are you a bad enough dude
+    // to modify them?
+    private final double P = 1.0;
+    private final double I = 1.0;
+    private final double D = 0.01;
 
     /**
      * Initializes all of the {@link CANSparkMax} motor and PID controllers.
@@ -142,9 +141,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 pidController.setP(P);
                 pidController.setI(I);
                 pidController.setD(D);
-                // pidController.setIZone(Iz);
-                // pidController.setFF(FF);
-                // pidController.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
+
 
                 pidControllers.add(pidController);
             } catch (Exception e) {
@@ -219,6 +216,9 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         // Translates shopping cart speeds and angles into motion.
         for (int i = 0; i < swerveModuleStates.length; i++)  {
 
+            // Set the speed for the current drive motor.
+            // ------------------------------------------
+
             // Translate speed from units of meters per second into a unitless
             // value between -1.0 and 1.0.
             double speed = swerveModuleStates[i].speedMetersPerSecond /
@@ -232,6 +232,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             }
 
             // Set angle for current pivot motor.
+            // ----------------------------------
 
             // This is the angle coming from the shopping cart angles in the swerveModuleStates[]
             // argument.  The range is always [-180, 180].
