@@ -20,6 +20,9 @@ its front side facing away from the driver.
          Moving the right joystick to the right turns the robot clockwise;
          moving it to the left turns the robot counterclockwise.
      2. Vertical channel: _Unused_
+  3. Right Trigger: **Manual Shoot**
+      Pressing the button will release a ball from the indexer to the shooter
+      manually.
 
 ## Motor and port assignments ##
 

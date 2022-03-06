@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.Constants;
 
 /**
@@ -27,7 +28,17 @@ public class InputSubsystem extends SubsystemBase {
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
+    private boolean aButton = false;
 
+    /**
+     * A button that triggers a manual release, to the shooter, of a ball
+     * captured by the indexer.  Nominally the release is automatic upon finding
+     * a vision solution.
+     */
+    private Button fireButton = null;
+
+    private Button hoodUpButton_ = null;
+    private Button hoodDownButton_ = null;
 
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
@@ -52,6 +63,18 @@ public class InputSubsystem extends SubsystemBase {
         return rotation;
     }
 
+    public boolean getAButton() {
+        return aButton;
+    }
+
+    public Button hoodUpButton() {
+        return hoodUpButton_;
+    }
+
+    public Button hoodDownButton() {
+        return hoodDownButton_;
+    }
+
     /**
      * Continuously check the human input devices and update our private variables.
      */
@@ -67,6 +90,7 @@ public class InputSubsystem extends SubsystemBase {
             frontBack += controller.getLeftY();
             leftRight += controller.getLeftX();
             rotation += controller.getRightX();
+            aButton = controller.getAButton();
         }
 
         // Clamp values that are too high.
@@ -100,11 +124,26 @@ public class InputSubsystem extends SubsystemBase {
         controller = new XboxController(Constants.XBOX_CONTROLLER_PORT);
         if (!controller.isConnected()) {
             System.err.println("Warning: Xbox controller disconnected");
+        } else {
+            // Right now, there's only one controller.  That could be a problem later
+            // when we have two controllers hooked up (one for driving, one for gunnery.)
+            fireButton = new Button(() -> {
+                return controller.getRightBumper();
+            });
+            hoodUpButton_ = new Button(() -> {
+                int dpadAngle = controller.getPOV();
+                return (dpadAngle == 0);
+            });
+            hoodDownButton_ = new Button(()->{
+                int dpadAngle = controller.getPOV();
+                return (dpadAngle > 135 && dpadAngle < 225);
+            });
         }
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
         shuffleboardTab.addNumber("rotation", () -> rotation);
+        shuffleboardTab.addBoolean("aButton", () -> aButton);
     }
 }
