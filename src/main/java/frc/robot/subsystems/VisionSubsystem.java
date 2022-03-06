@@ -5,6 +5,8 @@ import java.util.Map;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -28,6 +30,7 @@ public class VisionSubsystem extends SubsystemBase {
     private PIDController pidController = null;
     private double turnSpeed = 0;
     private double solutionDistance = 0;
+    private boolean solutionFound = false;
 
     private static final double P = 1.0;
     private static final double I = 1.0;
@@ -42,13 +45,28 @@ public class VisionSubsystem extends SubsystemBase {
     public VisionSubsystem(Gyro gyro) {
         this.gyro = gyro;
         pidController = new PIDController(P, I, D);
+
+        ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Vision");
+        shuffleboardTab.addNumber("turnSpeed", () -> getTurnSpeed());
+        shuffleboardTab.addBoolean("solutionFound", () -> solutionFound());
+        shuffleboardTab.addNumber("distance (in.)", () -> getSolutionDistanceInches());
+    }
+
+    /**
+     * Returns true if a vision solution was found and false otherwise.  Along
+     * with {@link #getTurnSpeed()} and {@link #getSolutionDistanceInches()},
+     * this function forms the main output of the vision subsystem.
+     */
+    public boolean solutionFound() {
+        return solutionFound;
     }
 
     /**
      * Returns the speed by which you need to rotate in order to align the
-     * camera with the vision target.  Values range between -1.0 and 1.0.  This
-     * is one of the two main outputs of this subsystem (the other being
-     * {@link #getSolutionDistanceInches()}.)
+     * camera with the vision target; values range between -1.0 and 1.0.
+     * Along with {@link #solutionFound()} and
+     * {@link #getSolutionDistanceInches()}, this function forms the main output
+     * of the vision subsystem.
      */
     public double getTurnSpeed() {
         return turnSpeed;
@@ -56,8 +74,9 @@ public class VisionSubsystem extends SubsystemBase {
 
     /**
      * Returns the distance, in inches, from the center of the Limelight's
-     * camera to the center of the vision solution.  This is one of the two main
-     * outputs of this subsystem (the other being {@link #getTurnSpeed()}).
+     * camera to the center of the vision solution.    Along
+     * with {@link #solutionFound()} and {@link #getTurnSpeed()},
+     * this function forms the main output of the vision subsystem.
      */
     public double getSolutionDistanceInches() {
         return solutionDistance;
@@ -72,8 +91,13 @@ public class VisionSubsystem extends SubsystemBase {
     public void periodic() {
         Map<String, Double> visionSolution = getSolution();
         solutionDistance = visionSolution.get("dist");
+        solutionFound = visionSolution.get("solutionFound") == 0 ? false : true;
         turnSpeed = useSolution(visionSolution);
     }
+
+    //////////////////////
+    // Private methods. //
+    //////////////////////
 
     /**
      * Returns this subsystem's official vision solution.  This allows us to
