@@ -75,7 +75,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.inputSubsystem = inputSubsystem;
         this.gyro = new ADXRS450_Gyro();
-        
+
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
         kinematics = new SwerveDriveKinematics(
@@ -95,15 +95,23 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     /**
+     * Returns the {@link Gyro gyro} that this subsystem is using for
+     * field-oriented swerve operations.
+     */
+    public Gyro getGyro() {
+        return gyro;
+    }
+
+    /**
      * Continuously updates the swerve modules' speeds and angles based on autonomous state
      * and/or user input.
      */
     @Override
     public void periodic() {
-        SwerveModuleState[] currentState = drivingScheme.convert(inputSubsystem.getFrontBack(), 
-                                                                 inputSubsystem.getLeftRight(), 
+        SwerveModuleState[] currentState = drivingScheme.convert(inputSubsystem.getFrontBack(),
+                                                                 inputSubsystem.getLeftRight(),
                                                                  inputSubsystem.getRotation());
         driver.drive(currentState);
-        
+
     }
 }

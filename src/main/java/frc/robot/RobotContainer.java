@@ -11,6 +11,7 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
@@ -27,6 +28,7 @@ public class RobotContainer {
   private InputSubsystem inputSubsystem = null;
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
   private ShooterSubsystem shooterSubsystem = null;
+  private VisionSubsystem visionSubsystem = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
@@ -35,6 +37,7 @@ public class RobotContainer {
     inputSubsystem = new InputSubsystem();
     this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem);
     shooterSubsystem = new ShooterSubsystem();
+    visionSubsystem = new VisionSubsystem(swerveDriveSubsystem.getGyro());
 
     // Configure the button bindings
     configureButtonBindings();
