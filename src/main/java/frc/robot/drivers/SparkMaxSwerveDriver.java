@@ -257,6 +257,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
                 final double MAX_TURNING_RATE = 1.0;
                 pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
+            } else {
+                pivotMotors.get(i).stopMotor();
             }
         }
     }
