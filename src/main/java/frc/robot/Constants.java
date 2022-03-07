@@ -206,4 +206,14 @@ public final class Constants {
                 255.0, // Back Right
                 202.0  // Front Right
         };
+
+        /**
+         * Xbox contoller remote types are detected with both xbox controllers and regular
+         * joystick controllers. By identifying the names of the pre-existing xbox controllers
+         * we will be able to differentiate between a normal joystick and xbox controller.
+         */
+        public static final String[] KNOWN_CONTROLLER_NAMES = {
+                "Logitech Dual Action",
+                "Controller (Xbox One For Windows)"
+        };
 }
