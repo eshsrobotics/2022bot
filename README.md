@@ -327,3 +327,10 @@ indexer, where it waits to be shot.
         - **Intake/Uptake Off** (if a minimum amount of time has passed and the
           *indexer sensor* does not detect a ball.)
         - **Intake/Uptake Off + Firing** (otherwise.)
+
+# Absolute alignment values
+- Front left: ~166.0 degrees 
+- Back left: ~17.8 degrees
+- Back right: ~255.0 degrees
+- Front right: ~202.0 degrees
+

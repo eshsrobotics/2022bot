@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.lang.reflect.Array;
+
 import com.fasterxml.jackson.databind.ser.std.NumberSerializers.IntLikeSerializer;
 
 /**
@@ -98,6 +100,34 @@ public final class Constants {
         //////////////////////
 
         /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int FRONT_LEFT_ABSOLUTE_PWM_PORT = FRONT_LEFT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int BACK_LEFT_ABSOLUTE_PWM_PORT = BACK_LEFT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int BACK_RIGHT_ABSOLUTE_PWM_PORT = BACK_RIGHT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int FRONT_RIGHT_ABSOLUTE_PWM_PORT = FRONT_RIGHT + 0;
+
+        /**
+         * When we're debugging, we need an easy way to abbreviate certain modules
+         * and variables when they're in groups of four (one per pivot wheel).
+         */
+        public static final String[] CORNER_NAME_ABBREVS = {
+                "FL", "BL", "BR", "FR"
+        };
+
+        /**
          * We need to make an assumption on where the Xbox controllers are plugged in.
          * This value may change if you plug other human input devices into the driver
          * station first.
@@ -168,4 +198,12 @@ public final class Constants {
 
         /** When declaring an alternate encoder we need to know the clicks per revolution. */
         public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;
+
+        /** Displacement of module from actual zero, used to reset them to zero relative to the whole robot. */
+        public static double[] DISPLACEMENT_ANGLES = {
+                166.0, // Front Left
+                17.8, // Back Left
+                255.0, // Back Right
+                202.0  // Front Right
+        };
 }
