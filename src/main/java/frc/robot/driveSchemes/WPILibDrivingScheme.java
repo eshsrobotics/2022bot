@@ -44,7 +44,7 @@ public class WPILibDrivingScheme implements DrivingScheme {
             new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
         );
         gyro = new ADXRS450_Gyro();
-        initializeShuffleboard();        
+        initializeShuffleboard();
     }
 
     /**
@@ -142,13 +142,13 @@ public class WPILibDrivingScheme implements DrivingScheme {
 
         ChassisSpeeds chassisSpeeds =
             ChassisSpeeds.fromFieldRelativeSpeeds(frontBackMetersPerSecond,
-                                                  leftRightMetersPerSecond,
+                                                  -leftRightMetersPerSecond,
                                                   rotationRadiansPerSecond,
                                                   gyro.getRotation2d());
         swerveEntries[8].setDouble(chassisSpeeds.vxMetersPerSecond);
         swerveEntries[9].setDouble(chassisSpeeds.vyMetersPerSecond);
         swerveEntries[10].setDouble(chassisSpeeds.omegaRadiansPerSecond);
-                                          
+
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
         for (int i = 0; i < 4; i++) {
             // Update the shuffleboard (one way, read-only.)
