@@ -1,7 +1,12 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.ColorMatch;
+import com.revrobotics.ColorSensorV3;
+
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.I2C;
 
 public class IntakeSubsystem extends SubsystemBase{
 
@@ -22,6 +27,23 @@ public class IntakeSubsystem extends SubsystemBase{
     private double fakeIndexerDelayStartTime = 0;
     private static final double FAKE_INDEXER_DELAY_SEC = 1.0;
 
+    /**
+     * Color sensor will be used to detect which type of ball is entering our intake system.
+     */
+    private final ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+
+    /**
+     * Color matcher will take the inputted values and use a 3d plane to estimate their distance from our
+     * preset values of what the colors should be to determine if they are correct.
+     */
+    private final ColorMatch colorMatcher = new ColorMatch();
+
+    /**
+     * Preset values that will be used to check if the color our sensor is seeing is close enough to what we want it to be.
+     */
+    private final Color kBlueBall = new Color(0, 0, 0);
+    private final Color kRedBall = new Color(0, 0, 0);
+
 
     /**
      * Allows us to swap whether we want to deploy and turn on our intake at the beginning of teleop or not.
@@ -33,6 +55,8 @@ public class IntakeSubsystem extends SubsystemBase{
 
 
     public IntakeSubsystem() {
+        colorMatcher.addColorMatch(kBlueBall);
+        colorMatcher.addColorMatch(kRedBall);
 
     }
     @Override
