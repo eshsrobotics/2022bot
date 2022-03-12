@@ -44,7 +44,7 @@ public class InputSubsystem extends SubsystemBase {
      * Returns the desired movement toward (negative) or away (positive) from the driver.
      */
     public double getFrontBack() {
-        return frontBack;
+        return -frontBack;
     }
 
     /**
@@ -73,6 +73,20 @@ public class InputSubsystem extends SubsystemBase {
 
     public Button hoodDownButton() {
         return hoodDownButton_;
+    }
+
+    /**
+     * Returns true if there is no human input on the controller -- in other
+     * words, if {@link InputSubsystem#getLeftRight getLeftRight()},
+     * {@link InputSubsystem#getFrontBack getFrontBack()}, and
+     * {@link InputSubsystem#getRotation getRotation()} are all in the dead zone.
+     */
+    public boolean joysticksAtNeutral() {
+        if (frontBack == 0 && leftRight == 0 && rotation == 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

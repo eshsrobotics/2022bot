@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -48,7 +49,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     /**
      * Converts an array of four swerve module states into motion.
      */
-    private SwerveDriver driver = null;
+    private SparkMaxSwerveDriver driver = null;
 
     /**
      * Tells what degrees the robot is in relative to the field
@@ -61,6 +62,19 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * field-oriented swerve calculations.
      */
     private SwerveDriveKinematics kinematics = null;
+
+    private NetworkTableEntry changeSwerveAngleEntry = null;
+
+    /**
+     * We have a {@link SwerveDriveSubsystem#changeSwerveAngleEntry shuffleboard variable}
+     * that can be used to force the swerve drive to point at a given angle.  But!  We
+     * only want to use this value if the human actually changes it in the Shuffleboard
+     * (since otherwise this debugging aid would have a negative impact on actual driving.)
+     * 
+     * <p>To do this, we need to maintain some state: namely, the last value that we saw for
+     * this ShuffleBoard entry.</p>
+     */
+    private double lastAngleFromShuffleboard = 0;
 
     /**
      * Initializes the drive and gyro. Whenever you start, the robot should
@@ -92,7 +106,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         // this.driver = new SwerveLibDriver();
         this.driver = new SparkMaxSwerveDriver();
 
-    }
+        ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
+        changeSwerveAngleEntry = shuffleboardTab.add("Set Swerve Angle", lastAngleFromShuffleboard).getEntry();
+      }
 
     /**
      * Continuously updates the swerve modules' speeds and angles based on autonomous state
@@ -100,10 +116,33 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        SwerveModuleState[] currentState = drivingScheme.convert(inputSubsystem.getFrontBack(), 
-                                                                 inputSubsystem.getLeftRight(), 
-                                                                 inputSubsystem.getRotation());
-        driver.drive(currentState);
-        
+        SwerveModuleState[] stateFromController = drivingScheme.convert(inputSubsystem.getFrontBack(), 
+                                                                        inputSubsystem.getLeftRight(), 
+                                                                        inputSubsystem.getRotation());
+
+        double angleFromShuffleboard = changeSwerveAngleEntry.getDouble(0);
+        if (!inputSubsystem.joysticksAtNeutral()) {
+
+            // Drive based on human input only.
+            driver.setGoalStates(stateFromController);
+
+        } else if (angleFromShuffleboard != lastAngleFromShuffleboard) { 
+
+            // Change the pivot motor angles based on a shuffle board variable, but *only*
+            // if that value changed.
+            driver.setGoalStates(driver.reset(angleFromShuffleboard));
+            lastAngleFromShuffleboard = angleFromShuffleboard;
+        }
+
+        driver.drive(driver.getGoalStates());
+    }
+
+    /**
+     * Helper function for {@link frc.robot.RobotContainer#zeroPosition RobotContainer.zeroPosition()}.
+     * From the start of deploying code, sets the swerve wheels forward to the initial postion that being 0
+     * degrees.  
+     */
+    public void initialPosition() {
+        driver.setGoalStates(driver.reset(0));
     }
 }
