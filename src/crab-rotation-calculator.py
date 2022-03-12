@@ -981,10 +981,10 @@ def draw_crab_rotation_diagram(canvas: AsciiCanvas,
     # Calculate the directions for all of the individual swerve wheels as
     # vectors.
     thetas: List[float] = get_crab_rotation_thetas(height, width)
-    vectors: List[Vector] = [Vector(0, -1),  # FRONT_LEFT
-                             Vector(0, -1),  # FRONT_RIGHT
-                             Vector(0, -1),  # BACK_LEFT
-                             Vector(0, -1)]  # BACK_RIGHT
+    vectors: List[Vector] = [Vector(0, 1),  # FRONT_LEFT
+                             Vector(0, 1),  # FRONT_RIGHT
+                             Vector(0, 1),  # BACK_LEFT
+                             Vector(0, 1)]  # BACK_RIGHT
     for i in range(len(vectors)):
         # Negative rotation parameters should rotate in reverse.
         crabVector: Vector = vectors[i].rotate(thetas[i] if rotation > 0 else (thetas[i] + math.pi))

@@ -246,6 +246,16 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
             entries.get(i + 4).setDouble(currentAbsoluteAngle);
 
+            Rotation2d temp = swerveModuleStates[0].angle;
+            // this was our attempt to change the swerve module states to match the crab rotation
+            swerveModuleStates[0].angle = Rotation2d.fromDegrees(90 - swerveModuleStates[0].angle.getDegrees());
+            swerveModuleStates[1].angle = swerveModuleStates[2].angle;
+            swerveModuleStates[2].angle = swerveModuleStates[0].angle;
+            swerveModuleStates[3].angle = Rotation2d.fromDegrees(270 - temp.getDegrees());
+
+            swerveModuleStates[1].speedMetersPerSecond*=-1;
+
+
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
             entries.get(i + 0).setDouble(deltaDegrees);
@@ -253,7 +263,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
                 final double MAX_TURNING_RATE = 1.0;
-                pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
+               pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
             }
         }
     }

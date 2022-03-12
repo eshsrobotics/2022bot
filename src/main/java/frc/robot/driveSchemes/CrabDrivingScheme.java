@@ -40,7 +40,7 @@ public class CrabDrivingScheme implements DrivingScheme {
         // Clamp the input values to the range [-1, 1].
         frontBack = Math.min(1.0, Math.max(-1.0, frontBack));
         leftRight = Math.min(1.0, Math.max(-1.0, leftRight));
-        rotation = Math.min(1.0, Math.max(-1.0, rotation));
+        rotation = Math.min(1.0, Math.max(1.0, rotation));
 
         // This is where the driver wants to go with respect to the field's
         // reference frame.

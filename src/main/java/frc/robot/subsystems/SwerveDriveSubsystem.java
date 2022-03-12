@@ -70,7 +70,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * that can be used to force the swerve drive to point at a given angle.  But!  We
      * only want to use this value if the human actually changes it in the Shuffleboard
      * (since otherwise this debugging aid would have a negative impact on actual driving.)
-     * 
+     *
      * <p>To do this, we need to maintain some state: namely, the last value that we saw for
      * this ShuffleBoard entry.</p>
      */
@@ -89,7 +89,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         this.inputSubsystem = inputSubsystem;
         this.gyro = new ADXRS450_Gyro();
-        
+
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
         kinematics = new SwerveDriveKinematics(
@@ -116,8 +116,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        SwerveModuleState[] stateFromController = drivingScheme.convert(inputSubsystem.getFrontBack(), 
-                                                                        inputSubsystem.getLeftRight(), 
+        SwerveModuleState[] stateFromController = drivingScheme.convert(inputSubsystem.getFrontBack(),
+                                                                        inputSubsystem.getLeftRight(),
                                                                         inputSubsystem.getRotation());
 
         double angleFromShuffleboard = changeSwerveAngleEntry.getDouble(0);
@@ -126,7 +126,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             // Drive based on human input only.
             driver.setGoalStates(stateFromController);
 
-        } else if (angleFromShuffleboard != lastAngleFromShuffleboard) { 
+        } else if (angleFromShuffleboard != lastAngleFromShuffleboard) {
 
             // Change the pivot motor angles based on a shuffle board variable, but *only*
             // if that value changed.
@@ -140,7 +140,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     /**
      * Helper function for {@link frc.robot.RobotContainer#zeroPosition RobotContainer.zeroPosition()}.
      * From the start of deploying code, sets the swerve wheels forward to the initial postion that being 0
-     * degrees.  
+     * degrees.
      */
     public void initialPosition() {
         driver.setGoalStates(driver.reset(0));
