@@ -93,10 +93,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
         kinematics = new SwerveDriveKinematics(
+            // new Translation2d(-horizontal, +vertical), // FRONT_LEFT
+            // new Translation2d(-horizontal, -vertical), // BACK_LEFT
+            // new Translation2d(+horizontal, -vertical), // BACK_RIGHT
+            // new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
             new Translation2d(-horizontal, +vertical), // FRONT_LEFT
-            new Translation2d(-horizontal, -vertical), // BACK_LEFT
+            new Translation2d(+horizontal, +vertical),  // FRONT_RIGHT
             new Translation2d(+horizontal, -vertical), // BACK_RIGHT
-            new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
+            new Translation2d(-horizontal, -vertical) // BACK_LEFT
+
+
         );
 
         this.drivingScheme = new WPILibDrivingScheme(kinematics, gyro);
@@ -132,6 +138,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             // if that value changed.
             driver.setGoalStates(driver.reset(angleFromShuffleboard));
             lastAngleFromShuffleboard = angleFromShuffleboard;
+
+        } else {
+
+            // We are not doing a debug change or autonomous, so the motors
+            // should just stop.
+            SwerveModuleState[] stopState = new SwerveModuleState[4];
+            for (int i = 0; i < 4; ++i) {
+                stopState[i] = new SwerveModuleState(0, driver.getGoalStates()[i].angle);
+            }
+            driver.setGoalStates(stopState);
         }
 
         driver.drive(driver.getGoalStates());

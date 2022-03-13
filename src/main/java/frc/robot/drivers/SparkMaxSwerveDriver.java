@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.robot.Constants;
+import frc.robot.subsystems.InputSubsystem;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
@@ -223,13 +224,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // value between -1.0 and 1.0.
             double speed = swerveModuleStates[i].speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            if (Math.abs(speed) <= Constants.JOYSTICK_DEAD_ZONE) {
-                speedMotors.get(i).stopMotor();
-                entries.get(i + 12).setDouble(0);
-            } else {
-                speedMotors.get(i).set(speed);
-                entries.get(i + 12).setDouble(speedMotors.get(i).get());
-            }
+            speedMotors.get(i).set(speed);
+            entries.get(i + 12).setDouble(speedMotors.get(i).get());
 
             // Set angle for current pivot motor.
             // ----------------------------------
@@ -245,16 +241,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
             currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
             entries.get(i + 4).setDouble(currentAbsoluteAngle);
-
-            Rotation2d temp = swerveModuleStates[0].angle;
-            // this was our attempt to change the swerve module states to match the crab rotation
-            swerveModuleStates[0].angle = Rotation2d.fromDegrees(90 - swerveModuleStates[0].angle.getDegrees());
-            swerveModuleStates[1].angle = swerveModuleStates[2].angle;
-            swerveModuleStates[2].angle = swerveModuleStates[0].angle;
-            swerveModuleStates[3].angle = Rotation2d.fromDegrees(270 - temp.getDegrees());
-
-            swerveModuleStates[1].speedMetersPerSecond*=-1;
-
 
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);

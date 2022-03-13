@@ -141,7 +141,7 @@ public final class Constants {
          * Once the robot is built we will measure and update said speed so that it is
          * more accurate
          */
-        public static double ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND = 13 * FEET_TO_METERS;
+        public static double ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND = 10 * FEET_TO_METERS;
 
         /**
          * Width of the wheel base in meters from the center of one wheel on the left to
@@ -179,7 +179,7 @@ public final class Constants {
                         * (ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND / (Math.PI * WHEEL_BASE_DIAGONAL_METERS));
 
         /** Deadzone value for the joystick channels of the controllers*/
-        public static double JOYSTICK_DEAD_ZONE = 0.125;
+        public static double JOYSTICK_DEAD_ZONE = 0.362;
 
         /** When declaring an alternate encoder we need to know the clicks per revolution. */
         public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;

@@ -1,5 +1,6 @@
 package frc.robot.driveSchemes;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -151,6 +152,7 @@ public class WPILibDrivingScheme implements DrivingScheme {
 
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
         for (int i = 0; i < 4; i++) {
+            states[i].angle = new Rotation2d(-states[i].angle.getRadians());
             // Update the shuffleboard (one way, read-only.)
             swerveEntries[i + 0].setDouble(states[i].angle.getDegrees());
             swerveEntries[i + 4].setDouble(states[i].speedMetersPerSecond);
