@@ -105,6 +105,12 @@ Limelight vision camera.
     From these values, we can use trigonometry to obtain the **solution
     distance**, and then feed that parameter into the [shooting
     algorithm](#shooting-algorithm).
+
+    The following data are pertinent to using the Limelight:
+    - Local configuration url: http://10.17.59.11:5801/
+    - The Limelight will be oriented **30°** from the ground plane.
+    - We saved a Limelight vision profile at ./docs/tatr_light.vpr.
+
 2. **Flywheels and hood.** The shooter consists of a circular opening with a
    bottom flywheel adjacent to it.  A hood behind the opening can be adjusted
    to fine-tune the trajectory of the parabolic arc the launched cargo will
