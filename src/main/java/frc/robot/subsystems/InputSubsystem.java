@@ -121,12 +121,41 @@ public class InputSubsystem extends SubsystemBase {
             // Uses linear interpalation to determine the channel value based on the
             // dead zone.
             // It starts the increase in value at the deadzone, versus at the "origin."
-            // channel = (channel * channel) * Math.signum(channel);
-            channel = ((Math.abs(channel) - deadzone) / (1 - deadzone)) * Math.signum(channel);
-
-            // Make an exponential curve response.
-            channel = Math.pow(Math.abs(channel), 2) * Math.signum(channel);
+            channel = linterp(channel, deadzone, 1.0);
+            channel = exponentialResponseCurve(channel, Constants.JOYSTICK_RESPONSE_CURVE_EXPONENT);
         }
+        return channel;
+    }
+
+    /**
+     * Performs linear interpolation of the given value. This is a helper function for
+     * {@link #deadzoneScale(double, double) deadzoneScale()}.
+     *
+     * @param current The current value.  It does not have to fall within the range
+     *                [min, max].
+     * @param min     The minimum value -- where the parameter of interpolation should be 0.
+     * @param max     The maximum value -- where the parameter of inteprolation should be 1.
+     * @return        The parameter of interpolation: 0 at min, 1 at max, and any value
+     *                inbetween or beyond.  The parameter will always have the same sign
+     *                as the original 'current' argument.
+     */
+    private static double linterp(double current, double min, double max) {
+        return Math.signum(current) * ((Math.abs(current) - min) / (max - min));
+    }
+
+    /**
+     * Makes a value in the range [-1.0, 1.0] scale according to the given exponent.
+     * This is a helper function for
+     * {@link #deadzoneScale(double, double) deadzoneScale()}.
+     *
+     * @param channel A value between -1 and 1.
+     * @param exponent The exponent to scale by, with 1.0 representing linear scaling.  The
+     *                 exponent should be positive.
+     * @return abs(channel) raised to the exponent power, but with the same sign as the
+     *         original channel argument.
+     */
+    private static double exponentialResponseCurve(double channel, double exponent) {
+        channel = Math.pow(Math.abs(channel), exponent) * Math.signum(channel);
         return channel;
     }
 }

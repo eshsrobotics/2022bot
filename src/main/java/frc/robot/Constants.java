@@ -178,8 +178,17 @@ public final class Constants {
         public static double ROBOT_MAXIMUM_ANGULAR_VELOCITY_RADIANS_PER_SECOND = (2 * Math.PI)
                         * (ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND / (Math.PI * WHEEL_BASE_DIAGONAL_METERS));
 
-        /** Deadzone value for the joystick channels of the controllers*/
+        /** Deadzone value for the joystick channels of the controllers */
         public static double JOYSTICK_DEAD_ZONE = 0.362;
+
+        /**
+         * The exponent to use for the exponential curve when we adjust the values
+         * coming from the joystick.  The drivers prefer the exponential response
+         * because it offers finer-grained control when joystick values are lower.
+         *
+         * Use 1.0 to force a linear response curve.
+         */
+        public static final double JOYSTICK_RESPONSE_CURVE_EXPONENT = 2.0;
 
         /** When declaring an alternate encoder we need to know the clicks per revolution. */
         public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;
