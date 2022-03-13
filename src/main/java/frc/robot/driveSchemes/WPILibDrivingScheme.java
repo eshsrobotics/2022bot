@@ -143,9 +143,9 @@ public class WPILibDrivingScheme implements DrivingScheme {
 
         ChassisSpeeds chassisSpeeds =
             ChassisSpeeds.fromFieldRelativeSpeeds(frontBackMetersPerSecond,
-                                                  -leftRightMetersPerSecond,
-                                                  rotationRadiansPerSecond,
-                                                  gyro.getRotation2d());
+                                                  leftRightMetersPerSecond,
+                                                  -rotationRadiansPerSecond,
+                                                  gyro.getRotation2d().unaryMinus());
         swerveEntries[8].setDouble(chassisSpeeds.vxMetersPerSecond);
         swerveEntries[9].setDouble(chassisSpeeds.vyMetersPerSecond);
         swerveEntries[10].setDouble(chassisSpeeds.omegaRadiansPerSecond);

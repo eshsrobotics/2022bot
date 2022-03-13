@@ -83,27 +83,10 @@ public class InputSubsystem extends SubsystemBase {
             rotation += controller.getRightX();
         }
 
-        // Clamp values that are too high.
-        if (Math.abs(frontBack) > 1.0) {
-            frontBack = Math.signum(frontBack);
-        }
-        if (Math.abs(leftRight) > 1.0) {
-            leftRight = Math.signum(leftRight);
-        }
-        if (Math.abs(rotation) > 1.0) {
-            rotation = Math.signum(rotation);
-        }
+        frontBack = deadzoneScale(frontBack, Constants.JOYSTICK_DEAD_ZONE);
+        leftRight = deadzoneScale(leftRight, Constants.JOYSTICK_DEAD_ZONE);
+        rotation = deadzoneScale(rotation, Constants.JOYSTICK_DEAD_ZONE);
 
-        // Deadzone values that are too low
-        if (Math.abs(frontBack) < Constants.JOYSTICK_DEAD_ZONE) {
-            frontBack = 0;
-        }
-        if (Math.abs(leftRight) < Constants.JOYSTICK_DEAD_ZONE) {
-            leftRight = 0;
-        }
-        if (Math.abs(rotation) < Constants.JOYSTICK_DEAD_ZONE) {
-            rotation = 0;
-        }
         super.periodic();
     }
 
@@ -119,5 +102,31 @@ public class InputSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
         shuffleboardTab.addNumber("rotation", () -> rotation);
+    }
+
+    /**
+     * Scales values from the three joystick inputs from the Dead Zone to start at
+     * zero, the minimum value, and get to 1, the maximum value. Not starting at 0
+     * from the start and after the Dead Zone, reacing "10%."
+     * @param channel
+     * @param deadzone
+     * @return
+     */
+    private static double deadzoneScale(double channel, double deadzone) {
+        if (Math.abs(channel) >= 1) {
+            channel = Math.signum(channel);
+        } else if (Math.abs(channel) < deadzone) {
+            channel = 0;
+        } else {
+            // Uses linear interpalation to determine the channel value based on the
+            // dead zone.
+            // It starts the increase in value at the deadzone, versus at the "origin."
+            // channel = (channel * channel) * Math.signum(channel);
+            channel = ((Math.abs(channel) - deadzone) / (1 - deadzone)) * Math.signum(channel);
+
+            // Make an exponential curve response.
+            channel = Math.pow(Math.abs(channel), 2) * Math.signum(channel);
+        }
+        return channel;
     }
 }

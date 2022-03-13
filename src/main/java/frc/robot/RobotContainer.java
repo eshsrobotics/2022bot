@@ -4,8 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
@@ -23,13 +25,19 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private InputSubsystem inputSubsystem = null;
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
+  private Gyro gyro = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    gyro = new ADXRS450_Gyro();
     inputSubsystem = new InputSubsystem();
-    this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem);
+    this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem, gyro);
+
+    // Calibrate the gyro when the robot turns on.
+    gyro.calibrate();
+
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -41,6 +49,7 @@ public class RobotContainer {
    */
   public void zeroPosition() {
     swerveDriveSubsystem.initialPosition();
+    gyro.reset();
   }
 
   /**

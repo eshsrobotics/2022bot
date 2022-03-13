@@ -85,10 +85,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * @param inputSubsystem Take human input and translates them into values
      *                       useful to us.
      */
-    public SwerveDriveSubsystem(InputSubsystem inputSubsystem) {
+    public SwerveDriveSubsystem(InputSubsystem inputSubsystem, Gyro gyro) {
 
         this.inputSubsystem = inputSubsystem;
-        this.gyro = new ADXRS450_Gyro();
+        this.gyro = gyro;
 
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
