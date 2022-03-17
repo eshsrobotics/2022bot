@@ -39,6 +39,8 @@ public class InputSubsystem extends SubsystemBase {
 
     private Button hoodUpButton_ = null;
     private Button hoodDownButton_ = null;
+    private Button turntableLeftButton_ = null;
+    private Button turntableRightButton_ = null;
 
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
@@ -75,6 +77,13 @@ public class InputSubsystem extends SubsystemBase {
         return hoodDownButton_;
     }
 
+    public Button getTurntableLeftButton() {
+        return turntableLeftButton_;
+    }
+
+    public Button getTurntableRightButton() {
+        return turntableRightButton_;
+    }
     /**
      * Returns true if there is no human input on the controller -- in other
      * words, if {@link InputSubsystem#getLeftRight getLeftRight()},
@@ -134,6 +143,12 @@ public class InputSubsystem extends SubsystemBase {
             hoodDownButton_ = new Button(()->{
                 int dpadAngle = controller.getPOV();
                 return (dpadAngle > 135 && dpadAngle < 225);
+            });
+            turntableLeftButton_ = new Button(() -> {
+                return (controller.getLeftTriggerAxis() > 0);
+            });
+            turntableRightButton_ = new Button(() -> {
+                return (controller.getRightTriggerAxis() > 0);
             });
         }
 

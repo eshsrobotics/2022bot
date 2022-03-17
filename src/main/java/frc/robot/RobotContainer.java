@@ -64,6 +64,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
+    // Use the up and down buttons on the D-pad to manually control the hood,
+    // for now.
     Button hoodUpButton = inputSubsystem.hoodUpButton();
     if (hoodUpButton != null) {
       hoodUpButton.whenHeld(new InstantCommand(() -> {
@@ -83,7 +86,16 @@ public class RobotContainer {
         shooterSubsystem.stopHood();
       }));
     }
-  }
+
+    // Use the right and left triggers (for now) to manually test the shooter turntable.
+    if (inputSubsystem.getTurntableLeftButton() != null) {
+        shooterSubsystem.turn(-1);
+    } else if (inputSubsystem.getTurntableRightButton() != null) {
+      shooterSubsystem.turn(+1);
+    } else {
+      shooterSubsystem.turn(0);
+    }
+}
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

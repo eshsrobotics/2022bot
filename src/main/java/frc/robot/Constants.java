@@ -172,8 +172,19 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT_ABSOLUTE_PWM_PORT = FRONT_RIGHT + 0;
 
-        public static int HOOD_LEFT_SERVO_PORT = 2;
-        public static int HOOD_RIGHT_SERVO_PORT = 3;
+        ////////////////
+        // DIO ports. //
+        ////////////////
+
+        public static final int HOOD_LEFT_SERVO_DIO_PORT = 2;
+        public static final int HOOD_RIGHT_SERVO_DIO_PORT = 3;
+
+        /**
+         * When the shooter hits this limit switch, it must abandon its current
+         * direction of travel and only allow travel in the opposite direction....until,
+         * that is, the limit switch is it again from the other side.
+         */
+        public static final int SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT = 4;
 
         /////////////////////////////////////////////
         // Constants measured in real-world units. //
