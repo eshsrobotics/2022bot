@@ -4,10 +4,6 @@
 
 package frc.robot;
 
-import java.lang.reflect.Array;
-
-import com.fasterxml.jackson.databind.ser.std.NumberSerializers.IntLikeSerializer;
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -21,6 +17,18 @@ import com.fasterxml.jackson.databind.ser.std.NumberSerializers.IntLikeSerialize
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+
+        ///////////////////////
+        // Common constants. //
+        ///////////////////////
+
+        /**
+         * When we're debugging, we need an easy way to abbreviate certain modules
+         * and variables when they're in groups of four (one per pivot wheel).
+         */
+        public static final String[] CORNER_NAME_ABBREVS = {
+                "FL", "BL", "BR", "FR"
+        };
 
         /**
          * Our swerve drive makes us use arrays of four quite often: four pivot motor
@@ -47,9 +55,9 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT = 3;
 
-        ///////////////////
-        // Driving ports //
-        ///////////////////
+        /////////////////////////
+        // Drive motor CAN IDs //
+        /////////////////////////
 
         /**
          * The CAN bus ID for the motor controller which drives the front left wheel.
@@ -71,9 +79,9 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT_DRIVE_MOTOR_CAN_ID = FRONT_RIGHT + 1;
 
-        /////////////////
-        // Pivot ports //
-        /////////////////
+        /////////////////////////
+        // Pivot motor CAN IDs //
+        /////////////////////////
 
         /**
          * The CAN bus ID for the motor controller which pivots the front left wheel.
@@ -95,9 +103,54 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT_TURN_MOTOR_CAN_ID = FRONT_RIGHT + 5;
 
-        //////////////////////
-        // Controller ports //
-        //////////////////////
+        ///////////////////
+        // Other CAN IDs //
+        ///////////////////
+
+        /**
+         * We use a Spark MAX to control the NEO 550 that turns the shooter turntable.
+         *
+         * We need it to be on the CAN bus (as opposed to using PWM) because its position
+         * must be carefully controlled to prevent overturning.
+         */
+        public static final int SHOOTER_TURNTABLE_CAN_ID = 9;
+
+        /**
+         * The turntable's 140-tooth gear connects to a 10-tooth gear at the end of the
+         * shooter turntable motor's gearbox.  One rotation of the shooter turntable
+         * motor therefore causes a 1/14th turn of the shooter turntable.
+         *
+         */
+        public static final double SHOOTER_TURN_TABLE_GEAR_RATIO = 10.0/140.0;
+
+        ////////////////////////////
+        // Controller (USB) ports //
+        ////////////////////////////
+
+        /**
+         * Xbox contoller remote types are detected with both xbox controllers and regular
+         * joystick controllers. By identifying the names of the pre-existing xbox controllers
+         * we will be able to differentiate between a normal joystick and xbox controller.
+         *
+         * The normal joystick's name is "Logitech Extreme 3D"; please do NOT add it
+         * to this list.
+         */
+        public static final String[] KNOWN_CONTROLLER_NAMES = {
+                "Logitech Dual Action",              // We can't find this in the lab
+                "Controller (Xbox One For Windows)", // An actual XBox controller
+                "Pro Controller"                     // Nintendo Switch controller
+        };
+
+        /**
+         * We need to make an assumption on where the Xbox controllers are plugged in.
+         * This value may change if you plug other human input devices into the driver
+         * station first.
+         */
+        public static int XBOX_CONTROLLER_PORT = 0;
+
+        ///////////////
+        // PWM ports //
+        ///////////////
 
         /**
          * The PWM port where the absolute position of the pivot motor is acquired.
@@ -119,27 +172,12 @@ public final class Constants {
          */
         public static final int FRONT_RIGHT_ABSOLUTE_PWM_PORT = FRONT_RIGHT + 0;
 
-        /**
-         * When we're debugging, we need an easy way to abbreviate certain modules
-         * and variables when they're in groups of four (one per pivot wheel).
-         */
-        public static final String[] CORNER_NAME_ABBREVS = {
-                "FL", "BL", "BR", "FR"
-        };
-
-        /**
-         * We need to make an assumption on where the Xbox controllers are plugged in.
-         * This value may change if you plug other human input devices into the driver
-         * station first.
-         */
-        public static int XBOX_CONTROLLER_PORT = 0;
-
-        ///////////////
-        // PWM ports //
-        ///////////////
-
         public static int HOOD_LEFT_SERVO_PORT = 2;
         public static int HOOD_RIGHT_SERVO_PORT = 3;
+
+        /////////////////////////////////////////////
+        // Constants measured in real-world units. //
+        /////////////////////////////////////////////
 
         /**
          * Conversion factor for Feet to Meters
