@@ -60,8 +60,8 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public ShooterSubsystem() {
         // We are assuming that these two expressions never throw exceptions.
-        leftServo = new PWM(Constants.HOOD_LEFT_SERVO_DIO_PORT);
-        rightServo = new PWM(Constants.HOOD_RIGHT_SERVO_DIO_PORT);
+        leftServo = new PWM(Constants.HOOD_LEFT_SERVO_PWM_PORT);
+        rightServo = new PWM(Constants.HOOD_RIGHT_SERVO_PWM_PORT);
 
         turntableLimitSwitch = new DigitalInput(Constants.SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT);
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
@@ -124,20 +124,19 @@ public class ShooterSubsystem extends SubsystemBase {
      * user's desired direction...if and only if we are permitted to.
      */
     private void maybeRotateTurntable() {
-        // Rotate the shooter turntable.
+
         if (turntableLimitSwitch.get()) {
-            // Limit switch is hit; stop motion in our current direction and ban
-            // that direction of travel.
+            // Limit switch is hit; ban further motion in that direction of
+            // travel.
             turntablePermittedDirection = (int)-Math.signum(turntableSpeed);
-            turntableSpeed = 0;
         } else {
             // As long as the limit switch is not hit, permit travel in all directions.
             turntablePermittedDirection = 0;
         }
 
-        if ((turntablePermittedDirection < 0 && turntableSpeed < 0) ||
-            (turntablePermittedDirection > 0 && turntableSpeed > 0)) {
-            // Disallow rotation in unpermitted directions.
+        if ((turntablePermittedDirection < 0 && turntableSpeed > 0) ||
+            (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
+            // Disallow rotation of the turntable in illegal directions.
             turntableSpeed = 0;
         }
 
