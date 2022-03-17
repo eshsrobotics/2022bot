@@ -70,7 +70,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 if (this.pneumaticsDeployStartTimeSec == 0) {
                     // We have just entered the DEPLOY state.
                     if (IntakeSubsystem.STATE_AFTER_DEPLOY == StateValues.INTAKE_UPTAKE_OFF) {
-                        // if we don't want to deploy our intake, just immediatley go to intake uptake off state.
+                        // if we don't want to deploy our intake, just immediately go to intake uptake off state.
                         this.currentState = StateValues.INTAKE_UPTAKE_OFF;
                         pneumaticsDeployStartTimeSec = 0;
                     } else {

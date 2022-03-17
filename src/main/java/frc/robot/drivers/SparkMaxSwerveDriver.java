@@ -5,10 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -18,7 +16,6 @@ import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.robot.Constants;
-import frc.robot.subsystems.InputSubsystem;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
@@ -98,10 +95,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             pivotMotors.set(Constants.BACK_LEFT, new CANSparkMax(Constants.BACK_LEFT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
             pivotMotors.set(Constants.BACK_RIGHT, new CANSparkMax(Constants.BACK_RIGHT_TURN_MOTOR_CAN_ID, MotorType.kBrushless));
 
-            dutyCycles.set(Constants.FRONT_LEFT, new DutyCycle(new DigitalInput(Constants.FRONT_LEFT_ABSOLUTE_PWM_PORT)));
-            dutyCycles.set(Constants.BACK_LEFT, new DutyCycle(new DigitalInput(Constants.BACK_LEFT_ABSOLUTE_PWM_PORT)));
-            dutyCycles.set(Constants.BACK_RIGHT, new DutyCycle(new DigitalInput(Constants.BACK_RIGHT_ABSOLUTE_PWM_PORT)));
-            dutyCycles.set(Constants.FRONT_RIGHT, new DutyCycle(new DigitalInput(Constants.FRONT_RIGHT_ABSOLUTE_PWM_PORT)));
+            dutyCycles.set(Constants.FRONT_LEFT, new DutyCycle(new DigitalInput(Constants.FRONT_LEFT_ABSOLUTE_DIO_PORT)));
+            dutyCycles.set(Constants.BACK_LEFT, new DutyCycle(new DigitalInput(Constants.BACK_LEFT_ABSOLUTE_DIO_PORT)));
+            dutyCycles.set(Constants.BACK_RIGHT, new DutyCycle(new DigitalInput(Constants.BACK_RIGHT_ABSOLUTE_DIO_PORT)));
+            dutyCycles.set(Constants.FRONT_RIGHT, new DutyCycle(new DigitalInput(Constants.FRONT_RIGHT_ABSOLUTE_DIO_PORT)));
 
             pivotMotors.forEach(m -> {
                 // When we cut power, the motors should stop pivoting immediately;

@@ -152,32 +152,35 @@ public final class Constants {
         // PWM ports //
         ///////////////
 
-        /**
-         * The PWM port where the absolute position of the pivot motor is acquired.
-         */
-        public static final int FRONT_LEFT_ABSOLUTE_PWM_PORT = FRONT_LEFT + 0;
-
-        /**
-         * The PWM port where the absolute position of the pivot motor is acquired.
-         */
-        public static final int BACK_LEFT_ABSOLUTE_PWM_PORT = BACK_LEFT + 0;
-
-        /**
-         * The PWM port where the absolute position of the pivot motor is acquired.
-         */
-        public static final int BACK_RIGHT_ABSOLUTE_PWM_PORT = BACK_RIGHT + 0;
-
-        /**
-         * The PWM port where the absolute position of the pivot motor is acquired.
-         */
-        public static final int FRONT_RIGHT_ABSOLUTE_PWM_PORT = FRONT_RIGHT + 0;
+        public static final int INTAKE_MOTOR_PWM_PORT = 0; // TODO: Confirm.
+        public static final int UPTAKE_MOTOR_PWM_PORT = 1; // TODO: Confirm.
+        public static final int HOOD_LEFT_SERVO_PWM_PORT = 2;
+        public static final int HOOD_RIGHT_SERVO_PWM_PORT = 3;
+        public static final int SHOOTER_UPPER_FLYWHEEL_PWM_PORT = 4; // Lower flywheel uses CAN.
 
         ////////////////
         // DIO ports. //
         ////////////////
 
-        public static final int HOOD_LEFT_SERVO_DIO_PORT = 2;
-        public static final int HOOD_RIGHT_SERVO_DIO_PORT = 3;
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int FRONT_LEFT_ABSOLUTE_DIO_PORT = FRONT_LEFT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int BACK_LEFT_ABSOLUTE_DIO_PORT = BACK_LEFT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int BACK_RIGHT_ABSOLUTE_DIO_PORT = BACK_RIGHT + 0;
+
+        /**
+         * The PWM port where the absolute position of the pivot motor is acquired.
+         */
+        public static final int FRONT_RIGHT_ABSOLUTE_DIO_PORT = FRONT_RIGHT + 0;
 
         /**
          * When the shooter hits this limit switch, it must abandon its current
