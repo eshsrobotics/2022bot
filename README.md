@@ -41,18 +41,18 @@ Motor distribution is as follows:
         6. Back left pivot motor (Brushless NEO @ Spark MAX)
         7. Back right pivot motor (Brushless NEO @ Spark MAX)
         8. Front right pivot motor (Brushless NEO @ Spark MAX)
-- Intake/uptake subsystem:
-  9. Indexer roller left (Brushless NEO 550 @ Spark MAX)
-  10. Indexer roller right (Brushless NEO 550 @ Spark MAX)
 - Shooter subsystem:
-  11. Left shooter flywheel (Brushless NEO @ Spark MAX)
-  12. Right shooter flywheel (Brushless NEO @ Spark MAX)
-  13. Turret turntable motor (Brushless NEO 550 @ Spark MAX)
+  9. Turret turntable motor (Brushless NEO 550 @ Spark MAX)
       - This doesn't need a CAN ID because it will not require a
         ~~[CANEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/canencoder)~~
         [SparkMaxAlternateEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/sparkmaxalternateencoder)
         -- since we can get the set point from the vision subsystem, we can put
         this on PWM if we want.
+  11. Left shooter flywheel (Brushless NEO @ Spark MAX)
+  12. Right shooter flywheel (Brushless NEO @ Spark MAX)
+- Intake/uptake subsystem:
+  13. Indexer roller left (Brushless NEO 550 @ Spark MAX)
+  10. Indexer roller right (Brushless NEO 550 @ Spark MAX)
 
 ### PWM ports ###
 
@@ -329,7 +329,7 @@ indexer, where it waits to be shot.
         - **Intake/Uptake Off + Firing** (otherwise.)
 
 # Absolute alignment values
-- Front left: ~166.0 degrees 
+- Front left: ~166.0 degrees
 - Back left: ~17.8 degrees
 - Back right: ~255.0 degrees
 - Front right: ~202.0 degrees
