@@ -126,27 +126,10 @@ public class InputSubsystem extends SubsystemBase {
             aButton = controller.getAButton();
         }
 
-        // Clamp values that are too high.
-        if (Math.abs(frontBack) > 1.0) {
-            frontBack = Math.signum(frontBack);
-        }
-        if (Math.abs(leftRight) > 1.0) {
-            leftRight = Math.signum(leftRight);
-        }
-        if (Math.abs(rotation) > 1.0) {
-            rotation = Math.signum(rotation);
-        }
+        frontBack = deadzoneScale(frontBack, Constants.JOYSTICK_DEAD_ZONE);
+        leftRight = deadzoneScale(leftRight, Constants.JOYSTICK_DEAD_ZONE);
+        rotation = deadzoneScale(rotation, Constants.JOYSTICK_DEAD_ZONE);
 
-        // Deadzone values that are too low
-        if (Math.abs(frontBack) < Constants.JOYSTICK_DEAD_ZONE) {
-            frontBack = 0;
-        }
-        if (Math.abs(leftRight) < Constants.JOYSTICK_DEAD_ZONE) {
-            leftRight = 0;
-        }
-        if (Math.abs(rotation) < Constants.JOYSTICK_DEAD_ZONE) {
-            rotation = 0;
-        }
         super.periodic();
     }
 
@@ -220,5 +203,60 @@ public class InputSubsystem extends SubsystemBase {
                 hoodDownButton_ = new Button(() -> this.joystick.getThrottle() > 0);
             }
         }
+    }
+
+    /**
+     * Scales values from the three joystick inputs from the Dead Zone to start at
+     * zero, the minimum value, and get to 1, the maximum value. Not starting at 0
+     * from the start and after the Dead Zone, reacing "10%."
+     * @param channel
+     * @param deadzone
+     * @return
+     */
+    private static double deadzoneScale(double channel, double deadzone) {
+        if (Math.abs(channel) >= 1) {
+            channel = Math.signum(channel);
+        } else if (Math.abs(channel) < deadzone) {
+            channel = 0;
+        } else {
+            // Uses linear interpalation to determine the channel value based on the
+            // dead zone.
+            // It starts the increase in value at the deadzone, versus at the "origin."
+            channel = linterp(channel, deadzone, 1.0);
+            channel = exponentialResponseCurve(channel, Constants.JOYSTICK_RESPONSE_CURVE_EXPONENT);
+        }
+        return channel;
+    }
+
+    /**
+     * Performs linear interpolation of the given value. This is a helper function for
+     * {@link #deadzoneScale(double, double) deadzoneScale()}.
+     *
+     * @param current The current value.  It does not have to fall within the range
+     *                [min, max].
+     * @param min     The minimum value -- where the parameter of interpolation should be 0.
+     * @param max     The maximum value -- where the parameter of inteprolation should be 1.
+     * @return        The parameter of interpolation: 0 at min, 1 at max, and any value
+     *                inbetween or beyond.  The parameter will always have the same sign
+     *                as the original 'current' argument.
+     */
+    private static double linterp(double current, double min, double max) {
+        return Math.signum(current) * ((Math.abs(current) - min) / (max - min));
+    }
+
+    /**
+     * Makes a value in the range [-1.0, 1.0] scale according to the given exponent.
+     * This is a helper function for
+     * {@link #deadzoneScale(double, double) deadzoneScale()}.
+     *
+     * @param channel A value between -1 and 1.
+     * @param exponent The exponent to scale by, with 1.0 representing linear scaling.  The
+     *                 exponent should be positive.
+     * @return abs(channel) raised to the exponent power, but with the same sign as the
+     *         original channel argument.
+     */
+    private static double exponentialResponseCurve(double channel, double exponent) {
+        channel = Math.pow(Math.abs(channel), exponent) * Math.signum(channel);
+        return channel;
     }
 }

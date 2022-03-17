@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.robot.Constants;
+import frc.robot.subsystems.InputSubsystem;
 
 public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
@@ -226,13 +227,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             // value between -1.0 and 1.0.
             double speed = swerveModuleStates[i].speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            if (Math.abs(speed) <= Constants.JOYSTICK_DEAD_ZONE) {
-                speedMotors.get(i).stopMotor();
-                entries.get(i + 12).setDouble(0);
-            } else {
-                speedMotors.get(i).set(speed);
-                entries.get(i + 12).setDouble(speedMotors.get(i).get());
-            }
+            speedMotors.get(i).set(speed);
+            entries.get(i + 12).setDouble(speedMotors.get(i).get());
 
             // Set angle for current pivot motor.
             // ----------------------------------
@@ -256,9 +252,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
                 final double MAX_TURNING_RATE = 1.0;
-                pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
-            } else {
-                pivotMotors.get(i).stopMotor();
+               pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
             }
         }
     }
