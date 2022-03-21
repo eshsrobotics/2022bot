@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.interfaces.Gyro;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +31,7 @@ public class RobotContainer {
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
   private ShooterSubsystem shooterSubsystem = null;
   private Gyro gyro = null;
+  private IntakeSubsystem intakeSubsystem = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
@@ -39,6 +41,7 @@ public class RobotContainer {
     inputSubsystem = new InputSubsystem();
     this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem, gyro);
     shooterSubsystem = new ShooterSubsystem();
+    intakeSubsystem = new IntakeSubsystem();
 
     // Calibrate the gyro when the robot turns on.
     gyro.calibrate();
@@ -87,6 +90,14 @@ public class RobotContainer {
       }));
     }
 
+    // Use the BButton to turn the uptake/intake on and off.
+    Button intakeTestButton = inputSubsystem.intakeTestButton();
+    if (intakeTestButton != null) {
+      intakeTestButton.whenPressed(() -> {
+        intakeSubsystem.toggleIntakeUptake();
+      });
+    }
+
     // Use the right and left triggers (for now) to manually test the shooter turntable.
     if (inputSubsystem.getTurntableLeftButton() != null) {
         shooterSubsystem.turn(-1);
@@ -94,6 +105,14 @@ public class RobotContainer {
       shooterSubsystem.turn(+1);
     } else {
       shooterSubsystem.turn(0);
+    }
+
+    // Manually fires the ball.
+    Button fireButton = inputSubsystem.fireButton();
+    if (fireButton != null) {
+      fireButton.whenPressed(() -> {
+        intakeSubsystem.releaseCargoToShooter();
+      });
     }
 }
 

@@ -35,12 +35,13 @@ public class InputSubsystem extends SubsystemBase {
      * captured by the indexer.  Nominally the release is automatic upon finding
      * a vision solution.
      */
-    private Button fireButton = null;
+    private Button fireButton_ = null;
 
     private Button hoodUpButton_ = null;
     private Button hoodDownButton_ = null;
     private Button turntableLeftButton_ = null;
     private Button turntableRightButton_ = null;
+    private Button intakeToggleTestButton_ = null;
 
     /**
      * Returns the desired movement toward (negative) or away (positive) from the driver.
@@ -75,6 +76,22 @@ public class InputSubsystem extends SubsystemBase {
 
     public Button hoodDownButton() {
         return hoodDownButton_;
+    }
+
+    /**
+    * Toggles the intake/uptake on and off, switching to the appropriate
+    * state as necessary.
+    * @return Returns a {@link Button} object to use for command bindings.
+    */
+    public Button intakeTestButton() {
+        return intakeToggleTestButton_;
+    }
+
+    /**
+     * Manual trigger the fireButton to release the cargo.
+     */
+    public Button fireButton() {
+        return fireButton_;
     }
 
     public Button getTurntableLeftButton() {
@@ -133,7 +150,7 @@ public class InputSubsystem extends SubsystemBase {
         } else {
             // Right now, there's only one controller.  That could be a problem later
             // when we have two controllers hooked up (one for driving, one for gunnery.)
-            fireButton = new Button(() -> {
+            fireButton_ = new Button(() -> {
                 return controller.getRightBumper();
             });
             hoodUpButton_ = new Button(() -> {
@@ -149,6 +166,12 @@ public class InputSubsystem extends SubsystemBase {
             });
             turntableRightButton_ = new Button(() -> {
                 return (controller.getRightTriggerAxis() > 0);
+            });
+            intakeToggleTestButton_ = new Button(() -> {
+                return controller.getBButtonPressed();
+            });
+            fireButton_ = new Button(() -> {
+                return controller.getAButton();
             });
         }
 

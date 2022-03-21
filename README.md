@@ -61,8 +61,8 @@ Motor distribution is as follows:
         - Is this going to be PWM or CAN?
     - (PWM port number?) (name/purpose) motor (CIM @ Spark)
 - Intake/uptake subsystem:
-  - (PWM port number?) Uptake roller motor (Mini-CIM @ Spark)
-  - (PWM port number?) Intake axle motor (Mini-CIM @ Spark)
+  0. Intake axle motor (Mini-CIM @ Spark)
+  1. Uptake belt motor (Mini-CIM @ Spark)
 - Shooter subsystem::
   - (PWM port numbers?) 2x hood motors (Linear servo @ Rev servo Hub)
 
