@@ -1,18 +1,9 @@
 package frc.robot.subsystems;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -21,9 +12,6 @@ import frc.robot.Constants;
 import frc.robot.driveSchemes.DrivingScheme;
 import frc.robot.driveSchemes.WPILibDrivingScheme;
 import frc.robot.drivers.SparkMaxSwerveDriver;
-import frc.robot.drivers.SwerveDriver;
-import frc.robot.drivers.SwerveLibDriver;
-import frc.robot.subsystems.InputSubsystem;
 
 /**
  * Continuously updates the eight motors of the serve drive -- four pivot
