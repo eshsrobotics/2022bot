@@ -4,8 +4,11 @@ import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import edu.wpi.first.wpilibj.I2C;
 
 public class IntakeSubsystem extends SubsystemBase{
@@ -21,11 +24,48 @@ public class IntakeSubsystem extends SubsystemBase{
         INTAKE_UPTAKE_OFF_FIRING
     }
     private StateValues currentState = StateValues.START;
+
+    private boolean receivedFireCommand = false;
+
+    /**
+     * True if the intake and uptake are active(pull balls in).
+     */
     private boolean intakeAndUptakeEnabled = false;
+
     private static final double PNEUMATICS_DEPLOY_WAIT_TIME_SEC = 1.0;
+
+    /**
+     * Records when we entered the {@link StateValues#DEPLOY DEPLOY} state last;
+     * this way, we assume after {@link #PNEUMATICS_DEPLOY_WAIT_TIME_SEC} amount of time the intake should
+     * be deployed.
+     *
+     * A value of 0 is treated specially here: it indicates that we are entering
+     * the DEPLOY state anew.  Otherwise, its value will be when we entered the DEPLOY
+     * state last.
+     */
     private double pneumaticsDeployStartTimeSec = 0;
-    private double fakeIndexerDelayStartTime = 0;
-    private static final double FAKE_INDEXER_DELAY_SEC = 1.0;
+
+    /**
+     * The time passed, in seconds, after the indexer motors start turning.
+     */
+    private double indexerStartTimeSec = 0;
+
+    /**
+     * Okay, the indexer motors are on.  The ball goes <b>fwoomp!</b> and releases
+     * to the shooter flywheel.  Nice!  Now, when do you turn those bad boys off?
+     *
+     * <ul>
+     *   <li>
+     *     Real answer: When the sensor says there's no ball there anymore.
+     *   </li>
+     *   <li>
+     *     Temporary answer (since we don't have a sensor): Just wait for
+     *     {@link #WAIT_INDEXER_SPIN_TIME_SEC} seconds and then assume that the
+     *     ball is well and truly launched.
+     *   </li>
+     * </ul>
+     */
+    private static final double WAIT_INDEXER_SPIN_TIME_SEC = 3;
 
     /**
      * Color sensor will be used to detect which type of ball is entering our intake system.
@@ -52,13 +92,23 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_ON;
 
+    /**
+     * Declares the uptake motor wo be implemented in code.
+     */
+    private MotorController uptakeMotor = null;
 
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
         colorMatcher.addColorMatch(kRedBall);
-
+        uptakeMotor = new PWMSparkMax(Constants.UPTAKE_MOTOR_PWM_PORT);
     }
+
+    /**
+     * Allows the use of a state machine that will call functions based on what the intake
+     * function will be. These states can be to intake balls, reject balls, or be at
+     * rest, waiting for the ball to be detected.
+     */
     @Override
     public void periodic() {
 
@@ -69,6 +119,8 @@ public class IntakeSubsystem extends SubsystemBase{
             case DEPLOY:
                 if (this.pneumaticsDeployStartTimeSec == 0) {
                     // We have just entered the DEPLOY state.
+                    uptakeMotor.stopMotor();
+
                     if (IntakeSubsystem.STATE_AFTER_DEPLOY == StateValues.INTAKE_UPTAKE_OFF) {
                         // if we don't want to deploy our intake, just immediatley go to intake uptake off state.
                         this.currentState = StateValues.INTAKE_UPTAKE_OFF;
@@ -78,6 +130,7 @@ public class IntakeSubsystem extends SubsystemBase{
                         System.out.printf("Pneumatics Enabled\n");
                         // Set the start time if we just entered deploy
                         this.pneumaticsDeployStartTimeSec = Timer.getFPGATimestamp();
+                        uptakeMotor.set(1.0);
                     }
                 }
                 if (Timer.getFPGATimestamp() - pneumaticsDeployStartTimeSec >= PNEUMATICS_DEPLOY_WAIT_TIME_SEC) {
@@ -93,6 +146,7 @@ public class IntakeSubsystem extends SubsystemBase{
 
                 } else if (ballInIndexer() && intakeUptakeMotorFULL()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_BALL_IN_INDEXER;
+                    this.receivedFireCommand = false;
                 }
                 break;
 
@@ -109,17 +163,18 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
 
             case INTAKE_UPTAKE_ON_FIRING:
-                if (this.fakeIndexerDelayStartTime == 0) {
-                    // We just entered the UPTAKE state.
-                    fakeIndexerDelayStartTime = Timer.getFPGATimestamp();
+                if (indexerStartTimeSec == 0) {
+                    // We just entered the INTAKE_UPTAKE_ON_FIRING state.
+                    indexerStartTimeSec = Timer.getFPGATimestamp();
                     System.out.print("Releasing Ball - spinning indexer forward\n");
-                }
-                if (Timer.getFPGATimestamp() - fakeIndexerDelayStartTime >= FAKE_INDEXER_DELAY_SEC) {
-                    // If control is here, ball has been shot
+                } else if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
+                    // If control makes here, we assume that the indexer has been on long
+                    // enough to have fully released the ball to the shooter.
                     //
                     // TODO: Replace with a test that actually uses the indexer sensor.
                     currentState = StateValues.INTAKE_UPTAKE_ON;
                     System.out.print("Turning indexer on\n");
+                    indexerStartTimeSec = 0;
                 }
                 break;
 
@@ -131,6 +186,11 @@ public class IntakeSubsystem extends SubsystemBase{
 
                 } else if (ballInIndexer() && intakeUptakeMotorFULL()) {
                     currentState = StateValues.INTAKE_UPTAKE_OFF_BALL_IN_INDEXER;
+                    receivedFireCommand = false;
+                } else {
+                    // We are still in a loop, when not receiving any input,
+                    // we shut down the system to stop the motor.
+                    uptakeMotor.stopMotor();
                 }
                 break;
 
@@ -147,22 +207,33 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
 
             case INTAKE_UPTAKE_OFF_FIRING:
-                if (this.fakeIndexerDelayStartTime == 0) {
-                    // We just entered the UPTAKE state.
-                    fakeIndexerDelayStartTime = Timer.getFPGATimestamp();
+                if (indexerStartTimeSec == 0) {
+                    // We just entered the INTAKE_UPTAKE_OFF_FIRING state.
+                    indexerStartTimeSec = Timer.getFPGATimestamp();
                     System.out.print("Releasing Ball - spinning indexer forward\n");
                 }
-                if (Timer.getFPGATimestamp() - fakeIndexerDelayStartTime >= FAKE_INDEXER_DELAY_SEC) {
+                if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
                     // If control is here, ball has been shot
                     //
                     // TODO: Replace with a test that actually uses the indexer sensor.
                     currentState = StateValues.INTAKE_UPTAKE_OFF;
-                    System.out.print("Turning indexer on\n");
+                    System.out.print("Turning indexer off\n");
+                    indexerStartTimeSec = 0;
                 }
                 break;
             }
         }
 
+    /**
+     * Toggles the intake and uptake motors.
+     */
+    public void toggleIntakeUptake() {
+        if (this.intakeAndUptakeEnabled) {
+            intakeAndUptakeEnabled = false;
+        } else {
+            intakeAndUptakeEnabled = true;
+        }
+    }
 
     /**
      * Detects if there is a ball in the indexer.
@@ -182,11 +253,23 @@ public class IntakeSubsystem extends SubsystemBase{
         return true;
     }
 
-    public boolean commandedToFire() {
-        // TODO: check if a different subsystem instructed us to fire.
-        // Going to fake it because we dont have either ^ .
-        return true;
+    /**
+     * Tells the InputSubsystem to release the cargo into the hooded shooter's
+     * fly wheels.
+     */
+    public void releaseCargoToShooter() {
+        receivedFireCommand = true;
     }
+
+    /**
+     * Tells us if {@link #releaseCargoToShooter()} recently called.
+     */
+    public boolean commandedToFire() {
+        return receivedFireCommand;
+    }
+
+
+
 
 
 }

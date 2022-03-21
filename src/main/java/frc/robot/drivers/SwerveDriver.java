@@ -1,7 +1,6 @@
 package frc.robot.drivers;
 
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Constants;
 import frc.robot.driveSchemes.DrivingScheme;
 
 /**
