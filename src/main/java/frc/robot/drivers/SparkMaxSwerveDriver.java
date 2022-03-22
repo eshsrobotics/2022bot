@@ -33,6 +33,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * Whenever the reversal flag is true for a motor, then we will reverse the
      * motor's direction in software.
      */
+    // How come you put "List" insted of "ArrayList", are they different? - Sam.
     private List<Boolean> reversalFlags;
 
     /**

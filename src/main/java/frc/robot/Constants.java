@@ -152,10 +152,10 @@ public final class Constants {
         // PWM ports //
         ///////////////
 
-        public static final int INTAKE_MOTOR_PWM_PORT = 0;
-        public static final int UPTAKE_MOTOR_PWM_PORT = 1;
-        public static final int HOOD_LEFT_SERVO_PWM_PORT = 2;
-        public static final int HOOD_RIGHT_SERVO_PWM_PORT = 3;
+        public static final int INTAKE_MOTOR_PWM_PORT = 14 ;
+        public static final int UPTAKE_MOTOR_PWM_PORT = 5;
+        public static final int HOOD_LEFT_SERVO_PWM_PORT = 0;
+        public static final int HOOD_RIGHT_SERVO_PWM_PORT = 0;
         public static final int SHOOTER_UPPER_FLYWHEEL_PWM_PORT = 4; // Lower flywheel uses CAN.
 
         ////////////////
