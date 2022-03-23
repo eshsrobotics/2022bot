@@ -31,12 +31,9 @@ public class RobotContainer {
   private InputSubsystem inputSubsystem = null;
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
   private ShooterSubsystem shooterSubsystem = null;
-<<<<<<< HEAD
   private VisionSubsystem visionSubsystem = null;
-=======
   private Gyro gyro = null;
   private IntakeSubsystem intakeSubsystem = null;
->>>>>>> master
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
@@ -46,14 +43,11 @@ public class RobotContainer {
     inputSubsystem = new InputSubsystem();
     this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem, gyro);
     shooterSubsystem = new ShooterSubsystem();
-<<<<<<< HEAD
     visionSubsystem = new VisionSubsystem(swerveDriveSubsystem.getGyro());
-=======
     intakeSubsystem = new IntakeSubsystem();
 
     // Calibrate the gyro when the robot turns on.
     gyro.calibrate();
->>>>>>> master
 
     // Configure the button bindings
     configureButtonBindings();

@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -76,11 +77,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public SwerveDriveSubsystem(InputSubsystem inputSubsystem, Gyro gyro) {
 
         this.inputSubsystem = inputSubsystem;
-<<<<<<< HEAD
         this.gyro = new ADXRS450_Gyro();
-=======
         this.gyro = gyro;
->>>>>>> master
 
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;
         final double vertical = Constants.WHEEL_BASE_LENGTH_METERS/2;
@@ -122,13 +120,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-<<<<<<< HEAD
-        SwerveModuleState[] currentState = drivingScheme.convert(inputSubsystem.getFrontBack(),
-                                                                 inputSubsystem.getLeftRight(),
-                                                                 inputSubsystem.getRotation());
-        driver.drive(currentState);
-
-=======
         SwerveModuleState[] stateFromController = drivingScheme.convert(inputSubsystem.getFrontBack(),
                                                                         inputSubsystem.getLeftRight(),
                                                                         inputSubsystem.getRotation());
@@ -167,6 +158,5 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     public void initialPosition() {
         driver.setGoalStates(driver.reset(0));
->>>>>>> master
     }
 }
