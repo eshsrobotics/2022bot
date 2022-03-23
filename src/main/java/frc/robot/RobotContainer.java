@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
@@ -28,19 +31,42 @@ public class RobotContainer {
   private InputSubsystem inputSubsystem = null;
   private SwerveDriveSubsystem swerveDriveSubsystem = null;
   private ShooterSubsystem shooterSubsystem = null;
+<<<<<<< HEAD
   private VisionSubsystem visionSubsystem = null;
+=======
+  private Gyro gyro = null;
+  private IntakeSubsystem intakeSubsystem = null;
+>>>>>>> master
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    gyro = new ADXRS450_Gyro();
     inputSubsystem = new InputSubsystem();
-    this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem);
+    this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem, gyro);
     shooterSubsystem = new ShooterSubsystem();
+<<<<<<< HEAD
     visionSubsystem = new VisionSubsystem(swerveDriveSubsystem.getGyro());
+=======
+    intakeSubsystem = new IntakeSubsystem();
+
+    // Calibrate the gyro when the robot turns on.
+    gyro.calibrate();
+>>>>>>> master
 
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  /**
+   * The default position of the swerve modules is facing straight forward, with the gear side of the modules
+   * pointing inward.  We call that value "0 degrees" for each swerve module.  This function causes the drive
+   * to seek that state.
+   */
+  public void zeroPosition() {
+    swerveDriveSubsystem.initialPosition();
+    gyro.reset();
   }
 
   /**
@@ -50,6 +76,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
+    // Use the up and down buttons on the D-pad to manually control the hood,
+    // for now.
     Button hoodUpButton = inputSubsystem.hoodUpButton();
     if (hoodUpButton != null) {
       hoodUpButton.whenHeld(new InstantCommand(() -> {
@@ -69,7 +98,32 @@ public class RobotContainer {
         shooterSubsystem.stopHood();
       }));
     }
-  }
+
+    // Use the BButton to turn the uptake/intake on and off.
+    Button intakeTestButton = inputSubsystem.intakeTestButton();
+    if (intakeTestButton != null) {
+      intakeTestButton.whenPressed(() -> {
+        intakeSubsystem.toggleIntakeUptake();
+      });
+    }
+
+    // Use the right and left triggers (for now) to manually test the shooter turntable.
+    if (inputSubsystem.getTurntableLeftButton() != null) {
+        shooterSubsystem.turn(-1);
+    } else if (inputSubsystem.getTurntableRightButton() != null) {
+      shooterSubsystem.turn(+1);
+    } else {
+      shooterSubsystem.turn(0);
+    }
+
+    // Manually fires the ball.
+    Button fireButton = inputSubsystem.fireButton();
+    if (fireButton != null) {
+      fireButton.whenPressed(() -> {
+        intakeSubsystem.releaseCargoToShooter();
+      });
+    }
+}
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

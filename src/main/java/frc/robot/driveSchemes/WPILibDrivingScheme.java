@@ -1,5 +1,6 @@
 package frc.robot.driveSchemes;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -44,7 +45,7 @@ public class WPILibDrivingScheme implements DrivingScheme {
             new Translation2d(+horizontal, +vertical)  // FRONT_RIGHT
         );
         gyro = new ADXRS450_Gyro();
-        initializeShuffleboard();        
+        initializeShuffleboard();
     }
 
     /**
@@ -143,14 +144,15 @@ public class WPILibDrivingScheme implements DrivingScheme {
         ChassisSpeeds chassisSpeeds =
             ChassisSpeeds.fromFieldRelativeSpeeds(frontBackMetersPerSecond,
                                                   leftRightMetersPerSecond,
-                                                  rotationRadiansPerSecond,
-                                                  gyro.getRotation2d());
+                                                  -rotationRadiansPerSecond,
+                                                  gyro.getRotation2d().unaryMinus());
         swerveEntries[8].setDouble(chassisSpeeds.vxMetersPerSecond);
         swerveEntries[9].setDouble(chassisSpeeds.vyMetersPerSecond);
         swerveEntries[10].setDouble(chassisSpeeds.omegaRadiansPerSecond);
-                                          
+
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
         for (int i = 0; i < 4; i++) {
+            states[i].angle = new Rotation2d(-states[i].angle.getRadians());
             // Update the shuffleboard (one way, read-only.)
             swerveEntries[i + 0].setDouble(states[i].angle.getDegrees());
             swerveEntries[i + 4].setDouble(states[i].speedMetersPerSecond);
