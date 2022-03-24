@@ -5,6 +5,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -13,6 +15,9 @@ import frc.robot.Constants;
  * the turret, hooded shooter angles, and flywheel speed.
  */
 public class ShooterSubsystem extends SubsystemBase {
+
+    private static final double EPSILON = 0.01;
+
    /**
     * The amount by which {@link #currentHoodPosition} increments during each
     * iteration of {@link #periodic periodic()} -- this always has a value of
@@ -43,6 +48,12 @@ public class ShooterSubsystem extends SubsystemBase {
     private int turntablePermittedDirection = 0;
 
     /**
+     * This variable records the last speed the turntable had when it was actually turning.  This is what we compare in order to determine
+     * the direction in which to forbid movement when the limit switch is pressed.
+     */
+    private double lastNonzeroTurntableSpeed = 0;
+
+    /**
      * This constant is used to control the speed at which the hooded shooter
      * raises and lowers.  When the user is not actively driving the position,
      * the hood will stop moving.
@@ -65,6 +76,15 @@ public class ShooterSubsystem extends SubsystemBase {
 
         turntableLimitSwitch = new DigitalInput(Constants.SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT);
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
+
+        ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Shooter");
+        shuffleboardTab.addNumber("turntableSpeed", () -> turntableSpeed);
+        shuffleboardTab.addNumber("lastNonzeroTurntableSpeed", () -> lastNonzeroTurntableSpeed);
+        shuffleboardTab.addNumber("turntablePermittedDirection", () -> turntablePermittedDirection);
+        shuffleboardTab.addNumber("currentHoodPosition", () -> currentHoodPosition);
+        shuffleboardTab.addNumber("currentHoodIncrement", () -> currentHoodIncrement);
+        shuffleboardTab.addBoolean("turntableLimitSwitch", () -> turntableLimitSwitch.get());
+
     }
 
     @Override
@@ -117,6 +137,9 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void turn(double speed) {
         turntableSpeed = speed;
+        if (Math.abs(turntableSpeed) > EPSILON) {
+            lastNonzeroTurntableSpeed = turntableSpeed;
+        }
     }
 
     /**
@@ -128,7 +151,7 @@ public class ShooterSubsystem extends SubsystemBase {
         if (turntableLimitSwitch.get()) {
             // Limit switch is hit; ban further motion in that direction of
             // travel.
-            turntablePermittedDirection = (int)-Math.signum(turntableSpeed);
+            turntablePermittedDirection = (int)-Math.signum(lastNonzeroTurntableSpeed);
         } else {
             // As long as the limit switch is not hit, permit travel in all directions.
             turntablePermittedDirection = 0;
@@ -140,10 +163,10 @@ public class ShooterSubsystem extends SubsystemBase {
             turntableSpeed = 0;
         }
 
-        if (Math.abs(turntableSpeed) < 0.01) { // TODO: replace with an epsilon constant
+        if (Math.abs(turntableSpeed) < EPSILON) {
             turntableMotor.stopMotor();
         } else {
-            turntableMotor.set(turntableSpeed);
+           turntableMotor.set(turntableSpeed);
         }
     }
 }

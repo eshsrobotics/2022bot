@@ -6,6 +6,7 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -93,15 +94,28 @@ public class IntakeSubsystem extends SubsystemBase{
     private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_ON;
 
     /**
-     * Declares the uptake motor wo be implemented in code.
+     * The uptake motor controls the diagonal belt which brings balls from the ground level up to the parallel indexer belts.
      */
     private MotorController uptakeMotor = null;
+
+    /**
+     * The intake motor controls an axle with Mecanum rollers on either end.  Balls that the robot drives into are squished between
+     * the intake rollers and the ground, driving them inexorably into the entrance to the uptake.
+     */
+    private MotorController intakeMotor = null;
 
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
         colorMatcher.addColorMatch(kRedBall);
         uptakeMotor = new PWMSparkMax(Constants.UPTAKE_MOTOR_PWM_PORT);
+        intakeMotor = new PWMSparkMax(Constants.INTAKE_MOTOR_PWM_PORT);
+
+        var shuffleboardTab = Shuffleboard.getTab("Intake");
+        shuffleboardTab.addBoolean("intakeUptakeEnabled", () -> intakeAndUptakeEnabled);
+        shuffleboardTab.addBoolean("receivedFireCommand", () -> receivedFireCommand);
+        shuffleboardTab.addNumber("pneumaticsDeployStartTimeSec", () -> pneumaticsDeployStartTimeSec);
+        shuffleboardTab.addString("currentState", () -> currentState.toString());
     }
 
     /**
@@ -119,6 +133,7 @@ public class IntakeSubsystem extends SubsystemBase{
             case DEPLOY:
                 if (this.pneumaticsDeployStartTimeSec == 0) {
                     // We have just entered the DEPLOY state.
+                    intakeMotor.stopMotor();
                     uptakeMotor.stopMotor();
 
                     if (IntakeSubsystem.STATE_AFTER_DEPLOY == StateValues.INTAKE_UPTAKE_OFF) {
@@ -130,7 +145,6 @@ public class IntakeSubsystem extends SubsystemBase{
                         System.out.printf("Pneumatics Enabled\n");
                         // Set the start time if we just entered deploy
                         this.pneumaticsDeployStartTimeSec = Timer.getFPGATimestamp();
-                        uptakeMotor.set(1.0);
                     }
                 }
                 if (Timer.getFPGATimestamp() - pneumaticsDeployStartTimeSec >= PNEUMATICS_DEPLOY_WAIT_TIME_SEC) {
@@ -140,6 +154,10 @@ public class IntakeSubsystem extends SubsystemBase{
                 }
                 break;
             case INTAKE_UPTAKE_ON:
+                // As long as we're in this state, the intake and uptake should be moving.
+                intakeMotor.set(1.0);
+                uptakeMotor.set(1.0);
+
                 if (!intakeAndUptakeEnabled) {
                     // Checking if intake and uptake was told to stop, then switching the state to off.
                     currentState = StateValues.INTAKE_UPTAKE_OFF;
@@ -180,6 +198,10 @@ public class IntakeSubsystem extends SubsystemBase{
 
 
             case INTAKE_UPTAKE_OFF:
+                // As long as we're in this state, the intake and uptake should not be moving.
+                intakeMotor.stopMotor();
+                uptakeMotor.stopMotor();
+
                 if (intakeAndUptakeEnabled) {
                     // Checking if intake and uptake was told to stop, then switching the state to off.
                     currentState = StateValues.INTAKE_UPTAKE_ON;
@@ -187,10 +209,6 @@ public class IntakeSubsystem extends SubsystemBase{
                 } else if (ballInIndexer() && intakeUptakeMotorFULL()) {
                     currentState = StateValues.INTAKE_UPTAKE_OFF_BALL_IN_INDEXER;
                     receivedFireCommand = false;
-                } else {
-                    // We are still in a loop, when not receiving any input,
-                    // we shut down the system to stop the motor.
-                    uptakeMotor.stopMotor();
                 }
                 break;
 

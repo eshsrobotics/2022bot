@@ -179,7 +179,6 @@ public class InputSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
         shuffleboardTab.addNumber("rotation", () -> rotation);
-        shuffleboardTab.addBoolean("aButton", () -> aButton);
     }
 
     /**

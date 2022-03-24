@@ -4,6 +4,7 @@ import java.util.Map;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -31,6 +32,8 @@ public class VisionSubsystem extends SubsystemBase {
     private double turnSpeed = 0;
     private double solutionDistance = 0;
     private boolean solutionFound = false;
+    private NetworkTableEntry xEntry = null;
+    private NetworkTableEntry yEntry = null;
 
     private static final double P = 1.0;
     private static final double I = 1.0;
@@ -50,6 +53,8 @@ public class VisionSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("turnSpeed", () -> getTurnSpeed());
         shuffleboardTab.addBoolean("solutionFound", () -> solutionFound());
         shuffleboardTab.addNumber("distance (in.)", () -> getSolutionDistanceInches());
+        xEntry = shuffleboardTab.add("x", 0).getEntry();
+        yEntry = shuffleboardTab.add("y", 0).getEntry();
     }
 
     /**
@@ -90,6 +95,11 @@ public class VisionSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         Map<String, Double> visionSolution = getSolution();
+
+        // Get the X and Y variables, too, just for debugging (they're not actually part of the vision solution)
+        xEntry.setDouble(visionSolution.get("x"));
+        yEntry.setDouble(visionSolution.get("y"));
+
         solutionDistance = visionSolution.get("dist");
         solutionFound = visionSolution.get("solutionFound") == 0 ? false : true;
         turnSpeed = useSolution(visionSolution);
@@ -206,9 +216,21 @@ public class VisionSubsystem extends SubsystemBase {
             pidController.enableContinuousInput(-180, 180);
         }
 
-        return Map.of("x",             gyro.getAngle() - pretendAngleDegrees,
-                      "y",             Double.valueOf(0),
-                      "solutionFound", Double.valueOf(1.0),
-                      "dist",          Double.valueOf(100));
+
+            // double gyroAngleDegrees = gyro.getAngle();
+            // return Map.of("x",             gyroAngleDegrees - pretendAngleDegrees,
+            //               "y",             Double.valueOf(0),
+            //               "solutionFound", Double.valueOf(1.0),
+            //               "dist",          Double.valueOf(100));
+
+            // Sometimes, apropos of nothing, we get "HAL: Incompatible State: The operation cannot be completed" messages
+            // when we try to read from the gyro.  I don't know what causes these.  I don't care, either.  The robot shouldn't
+            // blow up just because we can't get a freaking angle.
+            //
+            return Map.of("x",             Double.valueOf(0),
+                          "y",             Double.valueOf(-1),
+                          "solutionFound", Double.valueOf(0.0),
+                          "dist",          Double.valueOf(666)); // The distance will help us realize that something is amiss.
+
     }
 }

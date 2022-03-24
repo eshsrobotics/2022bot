@@ -64,7 +64,9 @@ Motor distribution is as follows:
   0. Intake axle motor (Mini-CIM @ Spark)
   1. Uptake belt motor (Mini-CIM @ Spark)
 - Shooter subsystem::
-  - (PWM port numbers?) 2x hood motors (Linear servo @ Rev servo Hub)
+  2. Left Hood Servo Motor (Linear servo @ Servo Power Hub)
+  3. Right Hood Servo Motor (Linear servo @ Servo Power Hub)
+  4. Shooter Flywheel Motor
 
 ## Subsystems ##
 ### Drive ###

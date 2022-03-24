@@ -17,6 +17,7 @@ import frc.robot.subsystems.SwerveDriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 
 /**
@@ -51,6 +52,13 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    // Instructs the shooter subsystem to rotate the turret based on input from the visionSubsystem (Can be overriden by manual input from second driver)
+    shooterSubsystem.setDefaultCommand(new RunCommand(() -> {
+      // Will re-enable, but testing manual control of the turntable with left and right triggers first.
+      //
+      // shooterSubsystem.turn(visionSubsystem.getTurnSpeed());
+    }, visionSubsystem, shooterSubsystem));
   }
 
   /**
@@ -103,11 +111,20 @@ public class RobotContainer {
 
     // Use the right and left triggers (for now) to manually test the shooter turntable.
     if (inputSubsystem.getTurntableLeftButton() != null) {
-        shooterSubsystem.turn(-1);
-    } else if (inputSubsystem.getTurntableRightButton() != null) {
-      shooterSubsystem.turn(+1);
-    } else {
-      shooterSubsystem.turn(0);
+      inputSubsystem.getTurntableLeftButton().whileHeld(new InstantCommand(() -> {
+        shooterSubsystem.turn(-0.25);
+      }));
+      inputSubsystem.getTurntableLeftButton().whenReleased(new InstantCommand(() -> {
+        shooterSubsystem.turn(0);
+      }));
+    }
+    if (inputSubsystem.getTurntableRightButton() != null) {
+      inputSubsystem.getTurntableRightButton().whileHeld(new InstantCommand(() -> {
+        shooterSubsystem.turn(+0.25);
+      }));
+      inputSubsystem.getTurntableRightButton().whenReleased(new InstantCommand(() -> {
+        shooterSubsystem.turn(0);
+      }));
     }
 
     // Manually fires the ball.
