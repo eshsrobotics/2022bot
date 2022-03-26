@@ -197,6 +197,10 @@ public class VisionSubsystem extends SubsystemBase {
         double ty = yEntry.getDouble(0.0);
         solutionDistance = (Constants.VISION_TARGET_AVERAGE_HEIGHT_INCHES - Constants.LIMELIGHT_LENSE_HEIGHT_INCHES) / Math.sin((Constants.LIMELIGHT_MOUNT_ANGLE_DEGREES + ty) * Constants.DEGREES_TO_RADIANS);
         return null;
+
+        return Map.of("tx",              Double.valueOf(Shuffleboard.getTab(tx)),
+                      "ty",              Double.valueOf(Shuffleboard.getTab(ty)),
+                      "true distance",   Double.valueOf(solutionDistance));
     }
 
     /**
