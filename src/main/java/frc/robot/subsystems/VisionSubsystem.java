@@ -4,11 +4,14 @@ import java.util.Map;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 /**
  * This subsystem's purpose is to passively align the robot's shooting
@@ -34,6 +37,7 @@ public class VisionSubsystem extends SubsystemBase {
     private boolean solutionFound = false;
     private NetworkTableEntry xEntry = null;
     private NetworkTableEntry yEntry = null;
+    private NetworkTable table = null;
 
     private static final double P = 1.0;
     private static final double I = 1.0;
@@ -48,6 +52,8 @@ public class VisionSubsystem extends SubsystemBase {
     public VisionSubsystem(Gyro gyro) {
         this.gyro = gyro;
         pidController = new PIDController(P, I, D);
+
+        table = NetworkTableInstance.getDefault().getTable("limelight");
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Vision");
         shuffleboardTab.addNumber("turnSpeed", () -> getTurnSpeed());
@@ -187,6 +193,9 @@ public class VisionSubsystem extends SubsystemBase {
         // Technically speaking, both the setpoint and the measured value are in
         // units of (horizontal) pixels!
         pidController.setSetpoint(0);
+        yEntry = table.getEntry("ty");
+        double ty = yEntry.getDouble(0.0);
+        solutionDistance = (Constants.VISION_TARGET_AVERAGE_HEIGHT_INCHES - Constants.LIMELIGHT_LENSE_HEIGHT_INCHES) / Math.sin((Constants.LIMELIGHT_MOUNT_ANGLE_DEGREES + ty) * Constants.DEGREES_TO_RADIANS);
         return null;
     }
 

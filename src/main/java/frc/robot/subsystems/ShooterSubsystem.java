@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import javax.swing.SwingWorker.StateValue;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -64,6 +66,13 @@ public class ShooterSubsystem extends SubsystemBase {
     private PWM rightServo = null;
     private DigitalInput turntableLimitSwitch = null;
     private CANSparkMax turntableMotor = null;
+
+    private enum turntableStates {
+        FREE_TO_MOVE_STATE,
+        RESRTICT_MOVE_UNTIL_RELEASED
+    }
+
+    private turntableStates currentState = turntableStates.FREE_TO_MOVE_STATE;
 
     /**
      * Initializes the hooded shooter while simultaneously pulling down
@@ -147,26 +156,40 @@ public class ShooterSubsystem extends SubsystemBase {
      * user's desired direction...if and only if we are permitted to.
      */
     private void maybeRotateTurntable() {
+        switch(currentState) {
+            case FREE_TO_MOVE_STATE:
+            // If the limit switch is pressed when the robot is not moving, meaning
+            // that the robot was turned on when the switch was pressed, there is no
+            // way to know what direction to move based on previous action.
+            // We are contemplating throwing an exeption and forcing the robot to quit
+            // because it is dangerous to guess which direction the robot can turn
+            // without messing up, damaging, or harming robot hardware.
+                if (turntableLimitSwitch.get()) {
+                    // Limit witch is hit; ban furter motion in that direction of the
+                    // travel.
+                    turntablePermittedDirection = (int)-Math.signum(turntableSpeed);
+                    currentState = turntableStates.RESRTICT_MOVE_UNTIL_RELEASED;
+                }
+                break;
+            case RESRTICT_MOVE_UNTIL_RELEASED:
+                if (!turntableLimitSwitch.get()) {
+                    // When the limit switch is not being pressed, meaning it has been
+                    // released, the turntable moves back to the FREE_TO_MOVE_STATE.
+                    currentState = turntableStates.FREE_TO_MOVE_STATE;
+                } else {
+                    if ((turntablePermittedDirection < 0 && turntableSpeed > 0) ||
+                    (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
+                        // Disallow rotation of the turntable in illegal directions.
+                        turntableSpeed = 0;
+                    }
+                }
+            break;
+            }
+            if (Math.abs(turntableSpeed) < EPSILON) {
+                turntableMotor.stopMotor();
+                } else {
+                turntableMotor.set(turntableSpeed);
+                }
 
-        if (turntableLimitSwitch.get()) {
-            // Limit switch is hit; ban further motion in that direction of
-            // travel.
-            turntablePermittedDirection = (int)-Math.signum(lastNonzeroTurntableSpeed);
-        } else {
-            // As long as the limit switch is not hit, permit travel in all directions.
-            turntablePermittedDirection = 0;
-        }
-
-        if ((turntablePermittedDirection < 0 && turntableSpeed > 0) ||
-            (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
-            // Disallow rotation of the turntable in illegal directions.
-            turntableSpeed = 0;
-        }
-
-        if (Math.abs(turntableSpeed) < EPSILON) {
-            turntableMotor.stopMotor();
-        } else {
-           turntableMotor.set(turntableSpeed);
         }
     }
-}
