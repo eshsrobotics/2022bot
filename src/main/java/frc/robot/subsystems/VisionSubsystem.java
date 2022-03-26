@@ -122,8 +122,8 @@ public class VisionSubsystem extends SubsystemBase {
      * line of code.
      */
     private Map<String, Double> getSolution() {
-        // return getSolutionFromLimelight();
-        return getSolutionFromGyro(0);
+        return getSolutionFromLimelight();
+        // return getSolutionFromGyro(0);
     }
 
     /**
@@ -193,6 +193,7 @@ public class VisionSubsystem extends SubsystemBase {
         // Technically speaking, both the setpoint and the measured value are in
         // units of (horizontal) pixels!
         pidController.setSetpoint(0);
+<<<<<<< HEAD
         yEntry = table.getEntry("ty");
         double ty = yEntry.getDouble(0.0);
         solutionDistance = (Constants.VISION_TARGET_AVERAGE_HEIGHT_INCHES - Constants.LIMELIGHT_LENSE_HEIGHT_INCHES) / Math.sin((Constants.LIMELIGHT_MOUNT_ANGLE_DEGREES + ty) * Constants.DEGREES_TO_RADIANS);
@@ -201,6 +202,22 @@ public class VisionSubsystem extends SubsystemBase {
         return Map.of("tx",              Double.valueOf(Shuffleboard.getTab(tx)),
                       "ty",              Double.valueOf(Shuffleboard.getTab(ty)),
                       "true distance",   Double.valueOf(solutionDistance));
+=======
+
+        double ty = table.getEntry("ty").getDouble(0.0);
+        double tx = table.getEntry("tx").getDouble(0.0);
+        double tv = table.getEntry("tv").getDouble(0.0);
+
+        double dist = (Constants.VISION_TARGET_AVERAGE_HEIGHT_INCHES -
+                            Constants.LIMELIGHT_LENS_HEIGHT_INCHES) /
+                            Math.sin((Constants.LIMELIGHT_MOUNT_ANGLE_DEGREES + ty) *
+                                     Constants.DEGREES_TO_RADIANS);
+
+        return Map.of("x",              Double.valueOf(tx),
+                      "y",              Double.valueOf(ty),
+                      "solutionFound",  Double.valueOf(tv),
+                      "dist",           Double.valueOf(dist));
+>>>>>>> 90eed26d0dc20fd4e2f4b3cd2344a42aba9b536b
     }
 
     /**

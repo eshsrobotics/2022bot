@@ -18,7 +18,7 @@ import frc.robot.drivers.SparkMaxSwerveDriver;
  * Continuously updates the eight motors of the serve drive -- four pivot
  * motors for aiming and four drive motors -- using two sources of
  * {@link SwerveModuleState SwerveModuleStates}: human input (by
- * means of a {@link DriveScheme}) and autonomous trajectories.
+ * means of a {@link DrivingScheme}) and autonomous trajectories.
  *
  * Put succinctly, this class makes the robot go vroom.
  */

@@ -213,7 +213,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     @Override
     public void drive(SwerveModuleState[] swerveModuleStates) {
-        ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
         // Translates shopping cart speeds and angles into motion.
         for (int i = 0; i < swerveModuleStates.length; i++)  {

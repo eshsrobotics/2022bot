@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import javax.swing.SwingWorker.StateValue;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
