@@ -261,6 +261,24 @@ public final class Constants {
          */
         public static final double JOYSTICK_RESPONSE_CURVE_EXPONENT = 2.0;
 
+        /**
+         * Distance from the ground to the center of the reflective tape on the
+         * hoop. This value is the average of the distance from the top of the
+         * tape and the bottom of the tape.
+         */
+        public static final double VISION_TARGET_AVERAGE_HEIGHT_INCHES = 102.6875;
+
+        /**
+         * Distance from the ground of the robot to the center of the lense on
+         * robot. This is the best estimate for the mount angle of the Limelight
+         * is 40 degrees.
+         */
+        public static final int LIMELIGHT_LENS_HEIGHT_INCHES = 25;
+
+        public static final double LIMELIGHT_MOUNT_ANGLE_DEGREES = 40;
+
+        public static final double DEGREES_TO_RADIANS = Math.PI / 180;
+
         /** When declaring an alternate encoder we need to know the clicks per revolution. */
         public static int SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION = 4096;
 
