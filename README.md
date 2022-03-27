@@ -10,19 +10,68 @@ This file contains [motor and port assignments](#motor-and-port-assignments), th
 _Note_: for field-oriented swerve to work, the robot must start the match with
 its front side facing away from the driver.
 
-- XBox controller:
-  1. Left joystick: **Field-oriented strafing**
-      Regardless of the orientation of the robot, pushing the left joystick
-      away from you will cause it to drive away from you; moving the joystick
-      to the left will cause the robot to move leftward, and so on.
-  2. Right joystick:
-     1. Horizontal channel: **Rotation**
-         Moving the right joystick to the right turns the robot clockwise;
-         moving it to the left turns the robot counterclockwise.
-     2. Vertical channel: _Unused_
-  3. Right Trigger: **Manual Shoot**
-      Pressing the button will release a ball from the indexer to the shooter
-      manually.
+- **Drive controller** (`XBoxController`):
+    1. Left joystick: **Field-oriented strafing**
+        Regardless of the orientation of the robot, pushing the left joystick
+        away from you will cause it to drive away from you; moving the joystick
+        to the left will cause the robot to move leftward, and so on.
+    1. Right joystick:
+       1. Horizontal channel: **Rotation**
+           Moving the right joystick to the right turns the robot clockwise;
+           moving it to the left turns the robot counterclockwise.
+       2. Vertical channel: _Unused_
+       3. R3 (pressing the right joystick): **Driver Controller Identify**
+           When pressing the right joystick down on the driver controller, it
+           will rumble. This is *only* on the driver controller so that you can
+           identify which controller you are holding regardless of the order
+           they were plugged in.
+    1. Ⓧ button: **Manual Intake reversal**
+        While holding the Ⓧ Button, the Intake motor will run in reverse
+        provided the intake is being told to spin.
+    1. Ⓐ button: **Toggle Intake deployment**
+        Pressing the Ⓐ button will pull the Intake assembly up if it is down, and
+        drop it down if it is up.  Once the Intake state is changed, it will not
+        stop until the state has been reached.
+
+        Note that the Intake is normally fully deployed as soon as the robot
+        powers on (**TODO: this is wrong;** we should only deploy the intake once
+        teleop, test, or autonomous are started.)
+    1. Ⓑ button: **Manual Intake/Uptake disable**
+        Pressing the Ⓑ button will shut off the Intake/Uptake if they are on, and
+        it will turn them on if they are off.
+
+- **Auxiliary controller** (`XBoxController`):
+    1. Left trigger: **Manual override**
+        As long as the left trigger is held down, the functionality of the
+        left bumper (_rotate turntable counterclockwise_), right bumper (_rotate
+        turntable clockwise_), and right trigger (_manual shooting_) will be
+        enabled.  Releasing the right trigger disables all of these controls.
+    1. Left bumper: **Rotate turntable counterclockwise**
+        Pressing the left bumper will cause the shooter turntable to rotate
+        counterclockwise, provided the left trigger (_manual override_) is held
+        down.
+    1. Right trigger: **Manual shooting**
+        Pressing the right trigger will cause the indexer to release any ball
+        that it is holding, making it contact the shooter flywheel and causing
+        it to launch out of the shooter in a parabolic arc.
+    1. Right bumper: **Rotate turntable clockwise**
+        Pressing the right bumper will cause the shooter turntable to rotate
+        clockwise, provided the left trigger (_manual override_) is held
+        down.
+    1. Right joystick:
+        1. R3 (pressing the right joystick): _No-op_ (**Auxiliary Controller Identify**)
+            Unlike the drive controller, pressing the right joystick down on the
+            auxiliary controller does nothing; it will *not* rumble.  This allows
+            you to distinguish between the drive and auxiliary controllers
+            regardless of the order in which they were plugged in.
+    1. Ⓐ button: **Climb up**
+        Pressing the Ⓐ button will pull the climber closer to the robot, which
+        during climbing will cause the robot to raise away from the ground and
+        move closer to the climbing bar.
+    1. Ⓑ button: **Climb down**
+        Pressing the Ⓑ button will push the climber away from the robot, which
+        during climbing will cause the robot to lower toward the ground and
+        move away from the climbing  bar.
 
 ## Motor and port assignments ##
 
@@ -67,6 +116,14 @@ Motor distribution is as follows:
   2. Left Hood Servo Motor (Linear servo @ Servo Power Hub)
   3. Right Hood Servo Motor (Linear servo @ Servo Power Hub)
   4. Shooter Flywheel Motor
+
+### PCM and air circuit ###
+
+- Intake deployment:
+  0. Right intake (deployment?) (12V solenoid @ Pneumatic Control Module)
+  1. Right intake (retraction?) (12V solenoid @ Pneumatic Control Module)
+  2. Left intake (deployment?) (12V solenoid @ Pneumatic Control Module)
+  3. Left intake (retraction?) (12V solenoid @ Pneumatic Control Module)
 
 ## Subsystems ##
 ### Drive ###
