@@ -168,7 +168,7 @@ public class InputSubsystem extends SubsystemBase {
                 return (controller.getRightTriggerAxis() > 0);
             });
             intakeToggleTestButton_ = new Button(() -> {
-                return controller.getBButtonPressed();
+                return controller.getBButton();
             });
             fireButton_ = new Button(() -> {
                 return controller.getAButton();

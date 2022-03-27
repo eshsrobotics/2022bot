@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -149,23 +150,25 @@ public class ShooterSubsystem extends SubsystemBase {
         }
     }
 
+
+
     /**
-     * Helper function for {@link #periodic()}.  Rotates the turntable in the
+     * Helper function for {@link #periodic()}. Rotates the turntable in the
      * user's desired direction...if and only if we are permitted to.
      */
     private void maybeRotateTurntable() {
-        switch(currentState) {
+        switch (currentState) {
             case FREE_TO_MOVE_STATE:
-            // If the limit switch is pressed when the robot is not moving, meaning
-            // that the robot was turned on when the switch was pressed, there is no
-            // way to know what direction to move based on previous action.
-            // We are contemplating throwing an exeption and forcing the robot to quit
-            // because it is dangerous to guess which direction the robot can turn
-            // without messing up, damaging, or harming robot hardware.
+                // If the limit switch is pressed when the robot is not moving, meaning
+                // that the robot was turned on when the switch was pressed, there is no
+                // way to know what direction to move based on previous action.
+                // We are contemplating throwing an exeption and forcing the robot to quit
+                // because it is dangerous to guess which direction the robot can turn
+                // without messing up, damaging, or harming robot hardware.
                 if (turntableLimitSwitch.get()) {
                     // Limit witch is hit; ban furter motion in that direction of the
                     // travel.
-                    turntablePermittedDirection = (int)-Math.signum(turntableSpeed);
+                    turntablePermittedDirection = (int) -Math.signum(turntableSpeed);
                     currentState = turntableStates.RESRTICT_MOVE_UNTIL_RELEASED;
                 }
                 break;
@@ -176,18 +179,18 @@ public class ShooterSubsystem extends SubsystemBase {
                     currentState = turntableStates.FREE_TO_MOVE_STATE;
                 } else {
                     if ((turntablePermittedDirection < 0 && turntableSpeed > 0) ||
-                    (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
+                            (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
                         // Disallow rotation of the turntable in illegal directions.
                         turntableSpeed = 0;
                     }
                 }
-            break;
-            }
-            if (Math.abs(turntableSpeed) < EPSILON) {
-                turntableMotor.stopMotor();
-                } else {
-                turntableMotor.set(turntableSpeed);
-                }
-
+                break;
         }
+        if (Math.abs(turntableSpeed) < EPSILON) {
+            turntableMotor.stopMotor();
+        } else {
+            turntableMotor.set(turntableSpeed);
+        }
+
     }
+}

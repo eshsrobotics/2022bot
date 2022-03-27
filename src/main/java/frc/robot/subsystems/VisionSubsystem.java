@@ -32,7 +32,12 @@ public class VisionSubsystem extends SubsystemBase {
 
     private Gyro gyro = null;
     private PIDController pidController = null;
+
+    /**
+     * The overall turning speed that we report to the outside world.
+     */
     private double turnSpeed = 0;
+
     private double solutionDistance = 0;
     private boolean solutionFound = false;
     private NetworkTableEntry xEntry = null;
@@ -80,7 +85,12 @@ public class VisionSubsystem extends SubsystemBase {
      * of the vision subsystem.
      */
     public double getTurnSpeed() {
-        return turnSpeed;
+        if (!solutionFound) {
+            // It's meaningless to turn if we can't see a vision solution in the first place.
+            return 0;
+        } else {
+            return -turnSpeed;
+        }
     }
 
     /**
@@ -108,7 +118,9 @@ public class VisionSubsystem extends SubsystemBase {
 
         solutionDistance = visionSolution.get("dist");
         solutionFound = visionSolution.get("solutionFound") == 0 ? false : true;
-        turnSpeed = useSolution(visionSolution);
+        if (solutionFound) {
+            turnSpeed = useSolution(visionSolution);
+        }
     }
 
     //////////////////////
@@ -172,9 +184,9 @@ public class VisionSubsystem extends SubsystemBase {
         // complicated, it actually couldn't be simpler.  We simply use PID to
         // get us from whatever the solution measured as our X deviation to an
         // X deviation of 0.
-        if (pidController.atSetpoint()) {
-            return 0;
-        }
+        // if (pidController.atSetpoint()) {
+        //     return 0;
+        // }
 
         double delta = pidController.calculate(visionSolution.get("x"), 0);
 

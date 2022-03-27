@@ -91,7 +91,7 @@ public class IntakeSubsystem extends SubsystemBase{
      * Possible values are: {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_ON INTAKE_UPTAKE_ON},
      * {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_OFF INTAKE_UPTAKE_OFF}
      */
-    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_ON;
+    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_OFF;
 
     /**
      * The uptake motor controls the diagonal belt which brings balls from the ground level up to the parallel indexer belts.
@@ -155,7 +155,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
             case INTAKE_UPTAKE_ON:
                 // As long as we're in this state, the intake and uptake should be moving.
-                intakeMotor.set(1.0);
+                intakeMotor.set(-1.0);
                 uptakeMotor.set(1.0);
 
                 if (!intakeAndUptakeEnabled) {

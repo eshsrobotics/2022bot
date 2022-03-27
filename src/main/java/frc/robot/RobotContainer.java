@@ -57,7 +57,10 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(new RunCommand(() -> {
       // Will re-enable, but testing manual control of the turntable with left and right triggers first.
       //
-      // shooterSubsystem.turn(visionSubsystem.getTurnSpeed());
+      double speedFromVision = visionSubsystem.getTurnSpeed() * 0.1;
+      if (speedFromVision != 0) {
+        shooterSubsystem.turn(speedFromVision);
+      }
     }, visionSubsystem, shooterSubsystem));
   }
 
