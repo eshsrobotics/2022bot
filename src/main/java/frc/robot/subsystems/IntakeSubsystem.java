@@ -22,6 +22,7 @@ public class IntakeSubsystem extends SubsystemBase{
         INTAKE_UPTAKE_ON_FIRING,
         INTAKE_UPTAKE_OFF,
         INTAKE_UPTAKE_OFF_BALL_IN_INDEXER,
+        INTAKE_UPTAKE_ON_BALL_IN_INDEXER_AND_UPTAKE,
         INTAKE_UPTAKE_OFF_FIRING
     }
     private StateValues currentState = StateValues.START;
@@ -137,7 +138,7 @@ public class IntakeSubsystem extends SubsystemBase{
                     uptakeMotor.stopMotor();
 
                     if (IntakeSubsystem.STATE_AFTER_DEPLOY == StateValues.INTAKE_UPTAKE_OFF) {
-                        // if we don't want to deploy our intake, just immediatley go to intake uptake off state.
+                        // if we don't want to deploy our intake, just immediately go to intake uptake off state.
                         this.currentState = StateValues.INTAKE_UPTAKE_OFF;
                         pneumaticsDeployStartTimeSec = 0;
                     } else {
@@ -172,12 +173,13 @@ public class IntakeSubsystem extends SubsystemBase{
                 if (!intakeAndUptakeEnabled) {
                     // Checking if intake and uptake was told to stop, then switching the state to off.
                     currentState = StateValues.INTAKE_UPTAKE_OFF;
-                }
-                if (commandedToFire()) {
+                } else if (ballInIndexer() && ballInUptake()) {
+                    // Switches states once there are the maximum amount of balls in the bot.
+                    currentState = StateValues.INTAKE_UPTAKE_ON_BALL_IN_INDEXER_AND_UPTAKE;
+                } else if (commandedToFire()) {
                     // If told to shoot, move to the firing state
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
                 }
-
                 break;
 
             case INTAKE_UPTAKE_ON_FIRING:
@@ -216,12 +218,25 @@ public class IntakeSubsystem extends SubsystemBase{
                 if (intakeAndUptakeEnabled) {
                     // Checking if intake and uptake was told to stop, then switching the state to off.
                     currentState = StateValues.INTAKE_UPTAKE_ON;
-                }
-                if (commandedToFire()) {
+                } else if (commandedToFire()) {
                     // If told to shoot, move to the firing state
                     currentState = StateValues.INTAKE_UPTAKE_OFF_FIRING;
                 }
+                break;
 
+            case INTAKE_UPTAKE_ON_BALL_IN_INDEXER_AND_UPTAKE:
+                // If control makes it here, we already had a ball in the indexer *and*
+                // we detected another in the uptake.  That's two balls in our
+                // digestive system; Rapid React rules forbid a robot from eating
+                // more than two.  So we must politely decline any future chance of
+                // of a meal.  For now.
+                intakeMotor.stopMotor();
+                uptakeMotor.stopMotor();
+
+                if (commandedToFire()) {
+                    currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
+                    // Ball should be loaded
+                }
                 break;
 
             case INTAKE_UPTAKE_OFF_FIRING:
@@ -258,7 +273,6 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private boolean ballInIndexer() {
         // TODO: When indexer sensor is ready, implement method properly.
-        // Not what real ballInIndexer will return, using this to call the method.
         return true;
     }
 
@@ -268,6 +282,15 @@ public class IntakeSubsystem extends SubsystemBase{
     public boolean intakeUptakeMotorFULL() {
         // TODO: look at motor values or wait (to check if the intake motors are at full speed).
         // Going to fake it because we dont have either ^ .
+        return true;
+    }
+
+    /**
+     * Tells if the uptake is full.
+     * @return Temporarily true all the time
+     */
+    public boolean ballInUptake() {
+        // TODO: Once the sensor is implemented, change varible and method right.
         return true;
     }
 
