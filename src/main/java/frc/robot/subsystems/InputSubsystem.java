@@ -346,9 +346,10 @@ public class InputSubsystem extends SubsystemBase {
         leftRight = 0;
         rotation = 0;
 
-        // If the XBox Controller is connected, allow its input to contribute to the overall
-        // output.
-        if (controller != null && controller.isConnected()) {
+        if (controllers != null && controllers[DRIVE_CONTROLLER_INDEX] != null) {
+
+            // Allow the drive controller to control the overall output of the
+            // SwerveDriveSubsystem.
             frontBack += controllers[DRIVE_CONTROLLER_INDEX].getLeftY();
             leftRight += controllers[DRIVE_CONTROLLER_INDEX].getLeftX();
             rotation += controllers[DRIVE_CONTROLLER_INDEX].getRightX();
