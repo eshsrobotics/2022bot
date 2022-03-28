@@ -29,15 +29,22 @@ import frc.robot.Constants;
  * to determine the direction and speed of the four swerve modules
  */
 public class InputSubsystem extends SubsystemBase {
-    private XboxController controller = null;
+    /**
+     * Our control scheme is new this year: we use two
+     * {@link XboxController XBox controllers} to control the various functions
+     * of the T.A.T.R. bot.  This array has exactly two elements.  One, the
+     * {@link #DRIVE_CONTROLLER_INDEX drive controller}, is for basic driving
+     * and intake; the other {@link #AUXILIARY_CONTROLLER_INDEX auxiliary
+     * controller}, is for manual overrides and climbing.
+     */
     private XboxController[] controllers =  null;
+
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-    private boolean aButton = false;
 
     private final static int DRIVE_CONTROLLER_INDEX = 0;
-    private final static int AUXILARY_CONTROLLER_INDEX = 1;
+    private final static int AUXILIARY_CONTROLLER_INDEX = 1;
 
     /**
      * A button that triggers a manual release, to the shooter, of a ball
@@ -65,26 +72,8 @@ public class InputSubsystem extends SubsystemBase {
         controllers = new XboxController[2];
         assignControllers(controllers);
 
-        // Right now, there's only one controller.  That could be a problem later
-        // when we have two controllers hooked up (one for driving, one for gunnery.)
-        fireButton_ = new Button(() -> {
-            //return controller.getRightBumper();
-            return controllers[AUXILARY_CONTROLLER_INDEX].getRightTriggerAxis() > 0;
-        });
-        hoodUpButton_ = new Button(() -> {
-            int dpadAngle = controllers[AUXILARY_CONTROLLER_INDEX].getPOV();
-            return (dpadAngle == 0);
-        });
-        hoodDownButton_ = new Button(()->{
-            int dpadAngle = controllers[AUXILARY_CONTROLLER_INDEX].getPOV();
-            return (dpadAngle > 135 && dpadAngle < 225);
-        });
-        turntableLeftButton_ = new Button(() -> {
-            return (controllers[AUXILARY_CONTROLLER_INDEX].getLeftBumper());
-        });
-        turntableRightButton_ = new Button(() -> {
-            return (controllers[AUXILARY_CONTROLLER_INDEX].getRightBumper());
-        });
+        // Primary controller inputs.
+
         intakeToggleTestButton_ = new Button(() -> {
             return controllers[DRIVE_CONTROLLER_INDEX].getBButton();
         });
@@ -94,15 +83,7 @@ public class InputSubsystem extends SubsystemBase {
         intakeDeployToggleButton_ = new Button (() -> {
             return controllers[DRIVE_CONTROLLER_INDEX].getAButton();
         });
-        climbDownButton_ = new Button (() -> {
-            return controllers[AUXILARY_CONTROLLER_INDEX].getBButton();
-        });
-        climbUpButton_ = new Button (() -> {
-            return controllers[AUXILARY_CONTROLLER_INDEX].getAButton();
-        });
-        manualOverrideButton_ = new Button (() -> {
-            return controllers[AUXILARY_CONTROLLER_INDEX].getLeftTriggerAxis() > 0;
-        });
+
         rumbleDriveButton_ = new Button (() -> {
             return controllers[DRIVE_CONTROLLER_INDEX].getRightStickButton();
         });
@@ -118,9 +99,37 @@ public class InputSubsystem extends SubsystemBase {
             } finally {
                 controllers[DRIVE_CONTROLLER_INDEX].setRumble(RumbleType.kLeftRumble, 0);
             }
-
         });
 
+        // Auxiliary controller inputs.  Think of this as being for gunnery.
+
+        fireButton_ = new Button(() -> {
+            //return controller.getRightBumper();
+            return controllers[AUXILIARY_CONTROLLER_INDEX].getRightTriggerAxis() > 0;
+        });
+        hoodUpButton_ = new Button(() -> {
+            int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
+            return (dpadAngle == 0);
+        });
+        hoodDownButton_ = new Button(()->{
+            int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
+            return (dpadAngle > 135 && dpadAngle < 225);
+        });
+        turntableLeftButton_ = new Button(() -> {
+            return (controllers[AUXILIARY_CONTROLLER_INDEX].getLeftBumper());
+        });
+        turntableRightButton_ = new Button(() -> {
+            return (controllers[AUXILIARY_CONTROLLER_INDEX].getRightBumper());
+        });
+        climbDownButton_ = new Button (() -> {
+            return controllers[AUXILIARY_CONTROLLER_INDEX].getBButton();
+        });
+        climbUpButton_ = new Button (() -> {
+            return controllers[AUXILIARY_CONTROLLER_INDEX].getAButton();
+        });
+        manualOverrideButton_ = new Button (() -> {
+            return controllers[AUXILIARY_CONTROLLER_INDEX].getLeftTriggerAxis() > 0;
+        });
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
@@ -129,18 +138,18 @@ public class InputSubsystem extends SubsystemBase {
 
     /**
      * Given this function to fill and array list for the priority of controllers. There are two
-     * controllers, a drive controller and an auxiallary controller. The first contoller in this list
+     * controllers, a drive controller and an auxillary controller. The first controller in this list
      * is the drive controller, which is programmed to complete drive related functions. The second
-     * controller is the auxiallary controller, which is programmed to complete additional tasks. If only
-     * one conroller is plugged in, it will be assigned the drive controller tasks, for it is more important
-     * in competition than the auxilary functions.
+     * controller is the auxiliary controller, which is programmed to complete additional tasks. If only
+     * one controller is plugged in, it will be assigned the drive controller tasks, for it is more important
+     * in competition than the auxiliary functions.
      *
-     * @param controllers This funtion will check to see what controller is assigned. This array list has
+     * @param controllers This function will check to see what controller is assigned. This array list has
      *                    a total of two controllers that are determined by their name.
      *
      */
     private void assignControllers(XboxController[] controllers) {
-        // There are 6 virtal ports in the drivers station that we could connect a controller to.
+        // There are 6 virtual ports in the drivers station that we could connect a controller to.
         final int NUM_VIRTUAL_PORTS = 6;
 
         // Construct a dictionary that maps names to the index where we prefer
@@ -192,14 +201,14 @@ public class InputSubsystem extends SubsystemBase {
 
                             if (index == 0) {
                                 // DANGER: THIS IS A COMMON SCENARIO. WE HAVE MULTIPLE XBOX CONTROLLERS.
-                                // Normally, we would just skip over Xbox controllers of the preffered name,
+                                // Normally, we would just skip over Xbox controllers of the preferred name,
                                 // however we are only using Xbox.
                                 //
                                 // Drive Controller = Xbox
-                                // Auixillary Controller = ALSO Xbox
+                                // Auxiliary Controller = ALSO Xbox
                                 //
-                                // We are making and engineering comprimise by automatically assigning the second
-                                // controller as a auixillary controller.
+                                // We are making and engineering compromise by automatically assigning the second
+                                // controller as a auxiliary controller.
                                 System.out.printf("Drive exists, but not aux: Assigning %s to aux!\n", cn);
                                 controllers[1] = candidateController;
                             } else {
@@ -265,10 +274,6 @@ public class InputSubsystem extends SubsystemBase {
      */
     public double getRotation() {
         return rotation;
-    }
-
-    public boolean getAButton() {
-        return aButton;
     }
 
     public Button hoodUpButton() {
@@ -376,7 +381,7 @@ public class InputSubsystem extends SubsystemBase {
         } else if (Math.abs(channel) < deadzone) {
             channel = 0;
         } else {
-            // Uses linear interpalation to determine the channel value based on the
+            // Uses linear interpolation to determine the channel value based on the
             // dead zone.
             // It starts the increase in value at the deadzone, versus at the "origin."
             channel = linterp(channel, deadzone, 1.0);
@@ -392,7 +397,7 @@ public class InputSubsystem extends SubsystemBase {
      * @param current The current value.  It does not have to fall within the range
      *                [min, max].
      * @param min     The minimum value -- where the parameter of interpolation should be 0.
-     * @param max     The maximum value -- where the parameter of inteprolation should be 1.
+     * @param max     The maximum value -- where the parameter of interpolation should be 1.
      * @return        The parameter of interpolation: 0 at min, 1 at max, and any value
      *                inbetween or beyond.  The parameter will always have the same sign
      *                as the original 'current' argument.
