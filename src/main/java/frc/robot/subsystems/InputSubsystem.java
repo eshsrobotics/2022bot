@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
-import java.rmi.server.ExportException;
 import java.util.HashMap;
-import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -29,22 +27,22 @@ import frc.robot.Constants;
  * to determine the direction and speed of the four swerve modules
  */
 public class InputSubsystem extends SubsystemBase {
+
+    private final static int DRIVE_CONTROLLER_INDEX = 0;
+    private final static int AUXILIARY_CONTROLLER_INDEX = 1;
+
     /**
-     * Our control scheme is new this year: we use two
-     * {@link XboxController XBox controllers} to control the various functions
-     * of the T.A.T.R. bot.  This array has exactly two elements.  One, the
-     * {@link #DRIVE_CONTROLLER_INDEX drive controller}, is for basic driving
-     * and intake; the other {@link #AUXILIARY_CONTROLLER_INDEX auxiliary
-     * controller}, is for manual overrides and climbing.
+     * Our control scheme this year calls for not one, but <em>two</em>
+     * XBox controllers: one for driving and normal operation, and one for
+     * climbing and manual overrides.  This array, therefore, always has exactly
+     * two elements: the drive at {@link #DRIVE_CONTROLLER_INDEX index 0} and
+     * the auxiliary at {@link #AUXILIARY_CONTROLLER_INDEX index 1}.
      */
     private XboxController[] controllers =  null;
 
     private double frontBack = 0;
     private double leftRight = 0;
     private double rotation = 0;
-
-    private final static int DRIVE_CONTROLLER_INDEX = 0;
-    private final static int AUXILIARY_CONTROLLER_INDEX = 1;
 
     /**
      * A button that triggers a manual release, to the shooter, of a ball
@@ -83,13 +81,13 @@ public class InputSubsystem extends SubsystemBase {
         intakeDeployToggleButton_ = new Button (() -> {
             return controllers[DRIVE_CONTROLLER_INDEX].getAButton();
         });
-
         rumbleDriveButton_ = new Button (() -> {
             return controllers[DRIVE_CONTROLLER_INDEX].getRightStickButton();
         });
 
-        // Make the Drive Controller rumble every time you press r3 (When you treat
-        // the right joystick as a button).
+        // Make the Drive Controller rumble for a couple of seconds every time
+        // you press R3 (i.e., when you treat the right joystick as a button and
+        // press it down).
         rumbleDriveButton_.whenPressed(() -> {
             controllers[DRIVE_CONTROLLER_INDEX].setRumble(RumbleType.kLeftRumble, 1);
             try {
@@ -137,19 +135,28 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
-     * Given this function to fill and array list for the priority of controllers. There are two
-     * controllers, a drive controller and an auxillary controller. The first controller in this list
-     * is the drive controller, which is programmed to complete drive related functions. The second
-     * controller is the auxiliary controller, which is programmed to complete additional tasks. If only
-     * one controller is plugged in, it will be assigned the drive controller tasks, for it is more important
-     * in competition than the auxiliary functions.
+     * Fills the given two-element array with {@link XboxController controller}
+     * objects that we discover on the virtual ports.
      *
-     * @param controllers This function will check to see what controller is assigned. This array list has
-     *                    a total of two controllers that are determined by their name.
+     * There are two controllers, a drive controller and an auxiliary controller.
+     * The first controller in this list is the drive controller, which is
+     * programmed to complete drive related functions. The second controller is
+     * the auxiliary controller, which is programmed to complete additional
+     * tasks. If only one controller is plugged in, it will be assigned the
+     * drive controller tasks, for it is more important in competition than the
+     * auxiliary functions.
      *
+     * @param controllers An array of two {@link XboxController} objects, both
+     *                    of which should be null.  Our function's "return value"
+     *                    is the act of populating this array.  Remember: the
+     *                    {@link #DRIVE_CONTROLLER_INDEX first element}
+     *                    (<code>controllers[0]</code>) is the <em>drive</em>
+     *                    controller; the {@link #AUXILIARY_CONTROLLER_INDEX
+     *                    second element} is the auxiliary controller.
      */
     private void assignControllers(XboxController[] controllers) {
-        // There are 6 virtual ports in the drivers station that we could connect a controller to.
+        // There are 6 virtual ports in the Driver Station that we
+        // could connect a controller to.
         final int NUM_VIRTUAL_PORTS = 6;
 
         // Construct a dictionary that maps names to the index where we prefer
@@ -240,7 +247,7 @@ public class InputSubsystem extends SubsystemBase {
                  });
 
             } catch (Exception e) {
-                // An XBox controller was not found on virtual port i.
+                // An XBox controller was not found on virtual port #i.
                 // There is nothing further to do, we are going to skip the black
                 // virtual ports and move on.
             }
