@@ -141,6 +141,21 @@ public final class Constants {
                 "Pro Controller"                     // Nintendo Switch controller
         };
 
+        public static final String[] DRIVE_CONTROLLER_NAME_PRIORITY = {
+                // An acutal XBox controller. Driver preference and can be programmed to 
+                // rumble to distiguish between controller types. 
+                "Controller (Xbox One for Windows)",
+                
+                // Jacob's Black XBox Controller
+                "Bluetooth XINPUT compatible input device" 
+        };
+
+        public static final String[] AUXILARY_CONTROLLER_NAME_PRIORITY = {
+                // Nintendo Switch controller. Same setup as an Xbox controller but second 
+                // priority to the drive controller.
+                "Pro Controller"
+        };
+
         /**
          * We need to make an assumption on where the Xbox controllers are plugged in.
          * This value may change if you plug other human input devices into the driver
