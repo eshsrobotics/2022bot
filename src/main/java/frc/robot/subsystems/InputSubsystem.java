@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,12 +56,13 @@ public class InputSubsystem extends SubsystemBase {
     private Button climbUpButton_ = null;
     private Button climbDownButton_ = null;
     private Button manualOverrideButton_ = null;
+    private Button rumbleDriveButton_ = null;
 
     /**
      * Initializes this object and determines which input methods are usable.
      */
     public InputSubsystem() {
-        // controller = new XboxController(Constants.XBOX_CONTROLLER_PORT);
+        controllers = new XboxController[2];
         assignControllers(controllers);
 
         // Right now, there's only one controller.  That could be a problem later
@@ -101,6 +103,23 @@ public class InputSubsystem extends SubsystemBase {
         manualOverrideButton_ = new Button (() -> {
             return controllers[AUXILARY_CONTROLLER_INDEX].getLeftTriggerAxis() > 0;
         });
+        rumbleDriveButton_ = new Button (() -> {
+            return controllers[DRIVE_CONTROLLER_INDEX].getRightStickButton();
+        });
+
+        // Make the Drive Controller rumble every time you press r3 (When you treat
+        // the right joystick as a button).
+        rumbleDriveButton_.whenPressed(() -> {
+            controllers[DRIVE_CONTROLLER_INDEX].setRumble(RumbleType.kLeftRumble, 1);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                // We don't care if this happens.
+            } finally {
+                controllers[DRIVE_CONTROLLER_INDEX].setRumble(RumbleType.kLeftRumble, 0);
+            }
+
+        });
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
@@ -110,37 +129,37 @@ public class InputSubsystem extends SubsystemBase {
 
     /**
      * Given this function to fill and array list for the priority of controllers. There are two
-     * controllers, a drive controller and an auxiallary controller. The first contoller in this list 
-     * is the drive controller, which is programmed to complete drive related functions. The second 
+     * controllers, a drive controller and an auxiallary controller. The first contoller in this list
+     * is the drive controller, which is programmed to complete drive related functions. The second
      * controller is the auxiallary controller, which is programmed to complete additional tasks. If only
      * one conroller is plugged in, it will be assigned the drive controller tasks, for it is more important
-     * in competition than the auxilary functions. 
-     * 
+     * in competition than the auxilary functions.
+     *
      * @param controllers This funtion will check to see what controller is assigned. This array list has
-     *                    a total of two controllers that are determined by their name.  
-     * 
+     *                    a total of two controllers that are determined by their name.
+     *
      */
     private void assignControllers(XboxController[] controllers) {
-        // There are 6 virtal ports in the drivers station that we could connect a controller to. 
+        // There are 6 virtal ports in the drivers station that we could connect a controller to.
         final int NUM_VIRTUAL_PORTS = 6;
 
         // Construct a dictionary that maps names to the index where we prefer
         // a controller of that name to be.  That is to say, our keys are name strings,
         // and our values are indices within controllers[].
         var table = new HashMap<String, Integer>();
-        for (String s : Constants.DRIVE_CONTROLLER_NAME_PRIORITY) {                    
+        for (String s : Constants.DRIVE_CONTROLLER_NAME_PRIORITY) {
             table.put(s, 0); // Controllers[0] is the driver controller.
         }
-        for (String s : Constants.AUXILARY_CONTROLLER_NAME_PRIORITY) {                    
+        for (String s : Constants.AUXILARY_CONTROLLER_NAME_PRIORITY) {
             table.put(s, 1); // Controllers[1] is the auxiliary controller.
         }
 
         for (int i = 0; i < NUM_VIRTUAL_PORTS; ++i) {
             try {
-                XboxController candidateController = new XboxController(i); 
+                XboxController candidateController = new XboxController(i);
 
                 if (!candidateController.isConnected()) {
-                    System.err.printf("Warning: Xbox controller disconnected virtual port %d", i);
+                    System.err.printf("Warning: Xbox controller disconnected virtual port %d\n", i);
                     continue;
                 }
 
@@ -148,59 +167,81 @@ public class InputSubsystem extends SubsystemBase {
                 // to see if the current XBox controller matches one of them.  If so, assign as
                 // appropriate.
                 table.forEach((name, index) -> {
-                    boolean driveControllerAssigned = (controllers[0] == null);
-                    boolean auxiliaryControllerAssigned = (controllers[1] == null);
-
-                    if (candidateController.getName() == name) {
+                    String cn = candidateController.getName();
+                    boolean driveControllerAssigned = (controllers[0] != null);
+                    boolean auxiliaryControllerAssigned = (controllers[1] != null);
+                    if (cn == name) {
 
                         if (!driveControllerAssigned && !auxiliaryControllerAssigned) {
 
                             // Nothing's assigned yet, so copy freely.
+                            System.out.printf("No drive, no aux: Assigning drive = %s\n", cn);
                             controllers[index] = candidateController;
 
                         } else if (!driveControllerAssigned && auxiliaryControllerAssigned) {
 
                             if (index == 0) {
+                                System.out.printf("No drive, aux exists: Assigning drive = %s\n", cn);
                                 controllers[0] = candidateController;
                             } else {
                                 // There's already an auxiliary controller assigned.  Do nothing.
+                                System.out.printf("No drive, aux exists, %s is aux: Taking no action\n", cn);
                             }
 
                         } else if (driveControllerAssigned && !auxiliaryControllerAssigned) {
 
                             if (index == 0) {
-                                // The drive controller is already assigned.  Do nothing.
+                                // DANGER: THIS IS A COMMON SCENARIO. WE HAVE MULTIPLE XBOX CONTROLLERS.
+                                // Normally, we would just skip over Xbox controllers of the preffered name,
+                                // however we are only using Xbox.
+                                //
+                                // Drive Controller = Xbox
+                                // Auixillary Controller = ALSO Xbox
+                                //
+                                // We are making and engineering comprimise by automatically assigning the second
+                                // controller as a auixillary controller.
+                                System.out.printf("Drive exists, but not aux: Assigning %s to aux!\n", cn);
+                                controllers[1] = candidateController;
                             } else {
+                                System.out.printf("Drive exists, no aux: Assigning %s to aux.\n", cn);
                                 controllers[1] = candidateController;
                             }
 
                         } else if (driveControllerAssigned && auxiliaryControllerAssigned) {
 
                             // Both controllers are assigned.  Ignore everything else!
+                            System.out.printf("Drive exists, aux exists: Taking no action\n");
                         }
                     } else {
                         // No controller that has been plugged in was recognized by name. We are in this
                         // else loop to determine what the controller assignment will be.
                         if (!driveControllerAssigned) {
+                            // There is no drive assigned at all, and this controller is not in the priority
+                            // list. We are going to force this controller to be a drive controller.
                             controllers[0] = candidateController;
+                            System.out.printf("%s is not in priority lists, no drive; assigning %s to drive\n", cn, cn);
                         } else if (!auxiliaryControllerAssigned) {
                             controllers[1] = candidateController;
+                            System.out.printf("%s is not set in priority lists, drive does exist, no aux: assigning %s to aux\n", cn, cn);
                         } else {
                             // Both controllers are assigned. Ignore the controller input.
+                            System.out.printf("Drive exists, aux exists: Ignoring %s\n", cn);
                         }
-                    }                      
-                 });                
-                
+                    }
+                 });
+
             } catch (Exception e) {
                 // An XBox controller was not found on virtual port i.
                 // There is nothing further to do, we are going to skip the black
-                // virtual ports and move on. 
+                // virtual ports and move on.
             }
-        } // end (for each virtual port)        
+        } // end (for each virtual port)
 
-        System.out.printf("Summary:\n  Drive Controller : %s\n  Auxiliary Controller : %s", 
-            controllers[0].getName(), 
-            controllers[1].getName());
+        String driverName = (controllers[0] == null ? "(null)" : controllers[0].getName());
+        String auxName = (controllers[1] == null ? "(null)" : controllers[1].getName());
+        System.out.printf("Summary:\n  Drive Controller : %s\n  Auxiliary Controller : %s\n",
+            driverName,
+            auxName);
     }
 
     /**

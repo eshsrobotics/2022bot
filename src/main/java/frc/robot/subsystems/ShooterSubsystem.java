@@ -85,6 +85,8 @@ public class ShooterSubsystem extends SubsystemBase {
         turntableLimitSwitch = new DigitalInput(Constants.SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT);
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
 
+
+
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Shooter");
         shuffleboardTab.addNumber("turntableSpeed", () -> turntableSpeed);
         shuffleboardTab.addNumber("lastNonzeroTurntableSpeed", () -> lastNonzeroTurntableSpeed);
