@@ -112,32 +112,57 @@ public class RobotContainer {
       });
     }
 
-    // Use the right and left triggers (for now) to manually test the shooter turntable.
+    /////////////////////////////////////////////////////////////////
+    // Manual overrides.                                           //
+    //                                                             //
+    // These only work while the manual override button is active. //
+    /////////////////////////////////////////////////////////////////
+
     if (inputSubsystem.getTurntableLeftButton() != null) {
       inputSubsystem.getTurntableLeftButton().whileHeld(new InstantCommand(() -> {
-        shooterSubsystem.turn(-0.25);
+        // Rotate the shooter turntable counterclockwise, but only if the
+        // manual override is held down.
+        Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
+        if (manualOverrideButton != null && manualOverrideButton.get()) {
+          shooterSubsystem.turn(-0.25);
+        }
       }));
       inputSubsystem.getTurntableLeftButton().whenReleased(new InstantCommand(() -> {
-        shooterSubsystem.turn(0);
-      }));
-    }
-    if (inputSubsystem.getTurntableRightButton() != null) {
-      inputSubsystem.getTurntableRightButton().whileHeld(new InstantCommand(() -> {
-        shooterSubsystem.turn(+0.25);
-      }));
-      inputSubsystem.getTurntableRightButton().whenReleased(new InstantCommand(() -> {
+        // Releasing will stop the turntable even without feedback from
+        // the manual override. This adheres to the Principle of Least
+        // Astonishment.
         shooterSubsystem.turn(0);
       }));
     }
 
-    // Manually fires the ball.
+    if (inputSubsystem.getTurntableRightButton() != null) {
+      inputSubsystem.getTurntableRightButton().whileHeld(new InstantCommand(() -> {
+        // Rotate the shooter turntable clockwise, but only if the manual
+        // override is held down.
+        Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
+        if (manualOverrideButton != null && manualOverrideButton.get()) {
+          shooterSubsystem.turn(+0.25);
+        }
+      }));
+      inputSubsystem.getTurntableRightButton().whenReleased(new InstantCommand(() -> {
+        // See above.
+        shooterSubsystem.turn(0);
+      }));
+    }
+
     Button fireButton = inputSubsystem.fireButton();
     if (fireButton != null) {
       fireButton.whenPressed(() -> {
-        intakeSubsystem.releaseCargoToShooter();
+        // Pressing (and then releasing) the fire button will manually fire
+        // the ball, but only when the manual override is held down at the
+        // same time.
+        Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
+        if (manualOverrideButton != null && manualOverrideButton.get()) {
+          intakeSubsystem.releaseCargoToShooter();
+        }
       });
     }
-}
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
