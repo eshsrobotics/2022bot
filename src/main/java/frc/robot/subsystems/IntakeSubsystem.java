@@ -230,12 +230,17 @@ public class IntakeSubsystem extends SubsystemBase{
                 // digestive system; Rapid React rules forbid a robot from eating
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
-                //intakeMotor.stopMotor();
-                //uptakeMotor.stopMotor();
+                intakeMotor.stopMotor();
+                // uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
                     // Ball should be loaded
+                } else if (!intakeAndUptakeEnabled) {
+                    // Hitting the B Button while we are in the holding state while the
+                    // robot is full, the robot is already stop. Transistion us from
+                    // the holding state to the intak uptake off.
+                    currentState = StateValues.INTAKE_UPTAKE_OFF;
                 }
                 break;
 
