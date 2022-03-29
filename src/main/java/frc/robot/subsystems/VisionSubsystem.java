@@ -44,6 +44,7 @@ public class VisionSubsystem extends SubsystemBase {
     private NetworkTableEntry yEntry = null;
     private NetworkTable table = null;
 
+    // Tweak the pid of the turret to make it run more smoothly.
     private static final double P = 1.0;
     private static final double I = 1.0;
     private static final double D = 0.01;
