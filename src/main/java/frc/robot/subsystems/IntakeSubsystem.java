@@ -231,11 +231,16 @@ public class IntakeSubsystem extends SubsystemBase{
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
                 intakeMotor.stopMotor();
-                uptakeMotor.stopMotor();
+                // uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
                     // Ball should be loaded
+                } else if (!intakeAndUptakeEnabled) {
+                    // Hitting the B Button while we are in the holding state while the
+                    // robot is full, the robot is already stop. Transistion us from
+                    // the holding state to the intak uptake off.
+                    currentState = StateValues.INTAKE_UPTAKE_OFF;
                 }
                 break;
 
@@ -314,3 +319,5 @@ public class IntakeSubsystem extends SubsystemBase{
 
 
 }
+
+
