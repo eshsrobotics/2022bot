@@ -12,7 +12,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj.I2C;
 
-public class IntakeSubsystem extends SubsystemBase{
+public class IntakeSubsystem extends SubsystemBase {
+    private static final double NORMAL_INTAKING_SPEED = -1.0;
+    private static final double REJECTION_INTAKING_SPEED = 1.0;
+    private double intakeSpeed = NORMAL_INTAKING_SPEED;
 
     private enum StateValues {
         START,
@@ -69,10 +72,16 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private static final double WAIT_INDEXER_SPIN_TIME_SEC = 3;
 
+    private double redColorValue;
+
+    private double greenColorValue;
+
+    private double blueColorValue;
+
     /**
      * Color sensor will be used to detect which type of ball is entering our intake system.
      */
-    private final ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+    private ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
 
     /**
      * Color matcher will take the inputted values and use a 3d plane to estimate their distance from our
@@ -117,6 +126,12 @@ public class IntakeSubsystem extends SubsystemBase{
         shuffleboardTab.addBoolean("receivedFireCommand", () -> receivedFireCommand);
         shuffleboardTab.addNumber("pneumaticsDeployStartTimeSec", () -> pneumaticsDeployStartTimeSec);
         shuffleboardTab.addString("currentState", () -> currentState.toString());
+
+        // For the Color Sensor.
+        shuffleboardTab.addNumber("red", () -> colorSensor.getRed());
+        shuffleboardTab.addNumber("green", () -> colorSensor.getGreen());
+        shuffleboardTab.addNumber("blue", () -> colorSensor.getBlue());
+        shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
     }
 
     /**
@@ -126,6 +141,7 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     @Override
     public void periodic() {
+        intakeSpeed = NORMAL_INTAKING_SPEED;
 
         switch(currentState) {
             case START:
@@ -156,7 +172,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
             case INTAKE_UPTAKE_ON:
                 // As long as we're in this state, the intake and uptake should be moving.
-                intakeMotor.set(-1.0);
+                intakeMotor.set(intakeSpeed);
                 uptakeMotor.set(1.0);
 
                 if (!intakeAndUptakeEnabled) {
@@ -231,7 +247,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
                 intakeMotor.stopMotor();
-                // uptakeMotor.stopMotor();
+                uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
@@ -259,7 +275,7 @@ public class IntakeSubsystem extends SubsystemBase{
                     indexerStartTimeSec = 0;
                 }
                 break;
-            }
+            } // periodic ends
         }
 
     /**
