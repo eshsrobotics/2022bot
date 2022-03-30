@@ -51,6 +51,14 @@ public class InputSubsystem extends SubsystemBase {
      */
     private Button fireButton_ = null;
 
+    /**
+     * A button that tracks whether or not the human drivers (well, really,
+     * the human holding the auxiliary controller) wishes to manually override
+     * the robot's behavior.
+     */
+    private Button manualOverrideButton_ = null;
+
+
     private Button hoodUpButton_ = null;
     private Button hoodDownButton_ = null;
     private Button turntableLeftButton_ = null;
@@ -60,7 +68,6 @@ public class InputSubsystem extends SubsystemBase {
     private Button intakeDeployToggleButton_ = null;
     private Button climbUpButton_ = null;
     private Button climbDownButton_ = null;
-    private Button manualOverrideButton_ = null;
     private Button rumbleDriveButton_ = null;
 
     /**
@@ -331,6 +338,11 @@ public class InputSubsystem extends SubsystemBase {
         return climbUpButton_;
     }
 
+    /**
+     * When this {@link Button} is held down, the human using the auxiliary
+     * controller can override some of the robot's otherwise automatic
+     * behavior, such as turret aiming and firing.
+     */
     public Button getManualOverrideButton() {
         return manualOverrideButton_;
     }
