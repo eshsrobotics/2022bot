@@ -208,6 +208,14 @@ public final class Constants {
          */
         public static final int SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT = 4;
 
+
+        /** 
+         * DIO port where the indexer sensor for the intake/uptake system is.
+         * Indexer sensor tests when there is a ball in the indexer.
+         * */ 
+
+        public static final int INDEX_SENSOR_DIO_PORT = 5;
+
         /////////////////////////////////////////////
         // Constants measured in real-world units. //
         /////////////////////////////////////////////

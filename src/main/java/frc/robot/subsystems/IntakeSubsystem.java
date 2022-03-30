@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 public class IntakeSubsystem extends SubsystemBase{
 
@@ -105,18 +106,29 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private MotorController intakeMotor = null;
 
+    /**
+     * This represents an adafruit IR breakbeam sensor (SKU number 2168) which will detect when a ball is in the indexer. 
+     * https://www.adafruit.com/product/2168
+     */
+    private DigitalInput indexerSensor = null;
+
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
         colorMatcher.addColorMatch(kRedBall);
+
         uptakeMotor = new PWMSparkMax(Constants.UPTAKE_MOTOR_PWM_PORT);
         intakeMotor = new PWMSparkMax(Constants.INTAKE_MOTOR_PWM_PORT);
+        indexerSensor = new DigitalInput(Constants.INDEX_SENSOR_DIO_PORT);
 
         var shuffleboardTab = Shuffleboard.getTab("Intake");
         shuffleboardTab.addBoolean("intakeUptakeEnabled", () -> intakeAndUptakeEnabled);
         shuffleboardTab.addBoolean("receivedFireCommand", () -> receivedFireCommand);
         shuffleboardTab.addNumber("pneumaticsDeployStartTimeSec", () -> pneumaticsDeployStartTimeSec);
         shuffleboardTab.addString("currentState", () -> currentState.toString());
+        shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
+
+        
     }
 
     /**
@@ -274,11 +286,10 @@ public class IntakeSubsystem extends SubsystemBase{
     }
 
     /**
-     * Detects if there is a ball in the indexer.
+     * Detects if there is a ball in the indexer, using indexer sensor.
      */
     private boolean ballInIndexer() {
-        // TODO: When indexer sensor is ready, implement method properly.
-        return true;
+        return !indexerSensor.get();
     }
 
     /**

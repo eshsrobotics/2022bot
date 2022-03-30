@@ -139,6 +139,14 @@ Motor distribution is as follows:
     2. (Left intake deployment?) (12V solenoid @ Pneumatic Control Module)
     3. (Left intake retraction?) (12V solenoid @ Pneumatic Control Module)
 
+### Digital IO (DIO) Port Assignments ###
+0. Front left pivot motor breakoutboard (SparkMax CanBus5)
+1. SparkMax CAN
+2. SparkMax CAN
+3. 
+4. Turret limit switch
+5. Indexer ball proximity sensor 
+
 ## Subsystems ##
 ### Drive ###
 [As the team
