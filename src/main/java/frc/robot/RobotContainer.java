@@ -59,8 +59,11 @@ public class RobotContainer {
       //
       double speedFromVision = visionSubsystem.getTurnSpeed() * 0.1;
       if (speedFromVision != 0) {
-        shooterSubsystem.turn(speedFromVision);
+        // shooterSubsystem.turn(speedFromVision);
       }
+
+      // TODO: Add code here to automatically adjust the hood and the flywheel speed
+      // depending on what the vision solution's distance is.
     }, visionSubsystem, shooterSubsystem));
   }
 
@@ -109,6 +112,14 @@ public class RobotContainer {
     if (intakeTestButton != null) {
       intakeTestButton.whenPressed(() -> {
         intakeSubsystem.toggleIntakeUptake();
+      });
+    }
+
+    // The A Button of the Drive Controller deploys and retracts the intake.
+    Button intakeDeployToggleButton = inputSubsystem.getIntakeDeployToggleButton();
+    if (intakeDeployToggleButton != null) {
+      intakeDeployToggleButton.whenPressed(() -> {
+        intakeSubsystem.deployIntake(!intakeSubsystem.isIntakeDeployed());
       });
     }
 
