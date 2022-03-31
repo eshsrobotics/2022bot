@@ -123,6 +123,18 @@ public final class Constants {
          */
         public static final double SHOOTER_TURN_TABLE_GEAR_RATIO = 10.0/140.0;
 
+        /**
+         * Identify the indexer for both CAN Spark Maxes on the right and left side.
+         */
+        public static final int INDEXER_ROLLER_RIGHT_CAN_ID = 10; 
+        public static final int INDEXER_ROLLER_LEFT_CAN_ID = 11;
+
+        /**
+         * Identify the Flywheel for both CAN Spark Maxes on the right and left side.
+         */
+        public static final int FLYWHEEL_RIGHT_CAN_ID = 12;
+        public static final int FLYWHEEL_LEFT_CAN_ID = 13;
+
         ////////////////////////////
         // Controller (USB) ports //
         ////////////////////////////
