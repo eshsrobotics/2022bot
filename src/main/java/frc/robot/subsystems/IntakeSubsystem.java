@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class IntakeSubsystem extends SubsystemBase {
     private static final double NORMAL_INTAKING_SPEED = -1.0;
@@ -179,6 +180,8 @@ public class IntakeSubsystem extends SubsystemBase {
     public void periodic() {
         intakeSpeed = NORMAL_INTAKING_SPEED;
 
+        updateIntakeSpeed();
+
         switch(currentState) {
             case START:
                 currentState = StateValues.DEPLOY;
@@ -282,8 +285,8 @@ public class IntakeSubsystem extends SubsystemBase {
                 // digestive system; Rapid React rules forbid a robot from eating
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
-                intakeMotor.stopMotor();
-                uptakeMotor.stopMotor();
+                //intakeMotor.stopMotor();
+                //uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
@@ -313,6 +316,23 @@ public class IntakeSubsystem extends SubsystemBase {
                 break;
             } // periodic ends
         }
+
+    /**
+     * Changes intake wheel direction depeding on the color of the ball.
+     * Uses color alliance and ball color from color sensor.
+     */
+    private void updateIntakeSpeed() {
+
+        boolean blueBallDetected = false;
+        boolean onBlueAlliance = (DriverStation.getAlliance() == DriverStation.Alliance.Blue);
+
+        if (onBlueAlliance != blueBallDetected) {
+            intakeSpeed = REJECTION_INTAKING_SPEED;
+        }
+        else {
+            intakeSpeed = NORMAL_INTAKING_SPEED;
+        }
+    }
 
     /**
      * Toggles the intake and uptake motors.
