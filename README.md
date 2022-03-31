@@ -143,9 +143,9 @@ Motor distribution is as follows:
 0. Front left pivot motor breakoutboard (SparkMax CanBus5)
 1. SparkMax CAN
 2. SparkMax CAN
-3. 
+3.
 4. Turret limit switch
-5. Indexer ball proximity sensor 
+5. Indexer ball proximity sensor
 
 ## Subsystems ##
 ### Drive ###

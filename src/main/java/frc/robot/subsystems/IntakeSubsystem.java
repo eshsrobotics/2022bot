@@ -14,7 +14,10 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 
-public class IntakeSubsystem extends SubsystemBase{
+public class IntakeSubsystem extends SubsystemBase {
+    private static final double NORMAL_INTAKING_SPEED = -1.0;
+    private static final double REJECTION_INTAKING_SPEED = 1.0;
+    private double intakeSpeed = NORMAL_INTAKING_SPEED;
 
     private enum StateValues {
         START,
@@ -71,10 +74,16 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private static final double WAIT_INDEXER_SPIN_TIME_SEC = 3;
 
+    private double redColorValue;
+
+    private double greenColorValue;
+
+    private double blueColorValue;
+
     /**
      * Color sensor will be used to detect which type of ball is entering our intake system.
      */
-    private final ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
+    private ColorSensorV3 colorSensor = new ColorSensorV3(I2C.Port.kOnboard);
 
     /**
      * Color matcher will take the inputted values and use a 3d plane to estimate their distance from our
@@ -108,7 +117,7 @@ public class IntakeSubsystem extends SubsystemBase{
     private MotorController intakeMotor = null;
 
     /**
-     * This represents an adafruit IR breakbeam sensor (SKU number 2168) which will detect when a ball is in the indexer. 
+     * This represents an adafruit IR breakbeam sensor (SKU number 2168) which will detect when a ball is in the indexer.
      * https://www.adafruit.com/product/2168
      */
     private DigitalInput indexerSensor = null;
@@ -131,9 +140,15 @@ public class IntakeSubsystem extends SubsystemBase{
         shuffleboardTab.addBoolean("receivedFireCommand", () -> receivedFireCommand);
         shuffleboardTab.addNumber("pneumaticsDeployStartTimeSec", () -> pneumaticsDeployStartTimeSec);
         shuffleboardTab.addString("currentState", () -> currentState.toString());
+
+        // For the Color Sensor.
+        shuffleboardTab.addNumber("red", () -> colorSensor.getRed());
+        shuffleboardTab.addNumber("green", () -> colorSensor.getGreen());
+        shuffleboardTab.addNumber("blue", () -> colorSensor.getBlue());
+        shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
         shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
 
-        
+
     }
 
     /**
@@ -143,6 +158,7 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     @Override
     public void periodic() {
+        intakeSpeed = NORMAL_INTAKING_SPEED;
 
         updateIntakeSpeed();
 
@@ -175,7 +191,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
             case INTAKE_UPTAKE_ON:
                 // As long as we're in this state, the intake and uptake should be moving.
-                intakeMotor.set(-1.0);
+                intakeMotor.set(intakeSpeed);
                 uptakeMotor.set(1.0);
 
                 if (!intakeAndUptakeEnabled) {
@@ -250,7 +266,7 @@ public class IntakeSubsystem extends SubsystemBase{
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
                 intakeMotor.stopMotor();
-                // uptakeMotor.stopMotor();
+                uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
@@ -278,7 +294,7 @@ public class IntakeSubsystem extends SubsystemBase{
                     indexerStartTimeSec = 0;
                 }
                 break;
-            }
+            } // periodic ends
         }
     
     /**
