@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class IntakeSubsystem extends SubsystemBase{
 
@@ -112,6 +113,10 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     private DigitalInput indexerSensor = null;
 
+    private static final double NORMAL_INTAKING_SPEED = -1.0;
+    private static final double REJECTION_INTAKING_SPEED = 1.0;
+    private double intakeSpeed = NORMAL_INTAKING_SPEED;
+
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
@@ -138,6 +143,8 @@ public class IntakeSubsystem extends SubsystemBase{
      */
     @Override
     public void periodic() {
+
+        updateIntakeSpeed();
 
         switch(currentState) {
             case START:
@@ -273,6 +280,23 @@ public class IntakeSubsystem extends SubsystemBase{
                 break;
             }
         }
+    
+    /**
+     * Changes intake wheel direction depeding on the color of the ball.
+     * Uses color alliance and ball color from color sensor.
+     */
+    private void updateIntakeSpeed() {
+        
+        boolean blueBallDetected = false;
+        boolean onBlueAlliance = (DriverStation.getAlliance() == DriverStation.Alliance.Blue);
+
+        if (onBlueAlliance != blueBallDetected) {  
+            intakeSpeed = REJECTION_INTAKING_SPEED;
+        }
+        else {
+            intakeSpeed = NORMAL_INTAKING_SPEED;
+        }
+    }
 
     /**
      * Toggles the intake and uptake motors.
