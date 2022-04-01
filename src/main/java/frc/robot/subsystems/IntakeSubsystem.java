@@ -109,7 +109,7 @@ public class IntakeSubsystem extends SubsystemBase {
      * Possible values are: {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_ON INTAKE_UPTAKE_ON},
      * {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_OFF INTAKE_UPTAKE_OFF}
      */
-    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_OFF;
+    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_ON;
 
     /**
      * The uptake motor controls the diagonal belt which brings balls from the ground level up to the parallel indexer belts.
@@ -255,7 +255,7 @@ public class IntakeSubsystem extends SubsystemBase {
                     indexerStartTimeSec = Timer.getFPGATimestamp();
                     System.out.print("Releasing Ball - spinning indexer forward\n");
                     leftIndexerMotor.set(0.5);
-                    rightIndexerMotor.set(0.5);
+                    rightIndexerMotor.set(-0.5);
                 } else if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
                     // If control makes here, we assume that the indexer has been on long
                     // enough to have fully released the ball to the shooter.

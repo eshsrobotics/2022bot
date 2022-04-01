@@ -13,6 +13,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
@@ -85,11 +86,12 @@ public class ShooterSubsystem extends SubsystemBase {
     /**
      * Overall speed of the flywheels, between 0.0 and 1.0.
      */
-    private double flyWheelSpeed = 0;
+    private double flyWheelSpeedRight = 0;
+    private double flyWheelSpeedLeft = 0;
 
-    private static final double P = 1.0;
-    private static final double I = 1.0;
-    private static final double D = 0.01;
+    private static final double P = 0.01;
+    private static final double I = 0.01;
+    private static final double D = 0.00;
 
     private NetworkTableEntry flywheelSpeedEntry = null;
     private NetworkTableEntry hoodAngleEntry = null;
@@ -141,6 +143,8 @@ public class ShooterSubsystem extends SubsystemBase {
         shuffleboardTab.addBoolean("turntableLimitSwitch", () -> turntableLimitSwitch.get());
         shuffleboardTab.addNumber("leftFlyWheelVelocity", () -> leftFlywheelEncoder.getVelocity());
         shuffleboardTab.addNumber("rightFlyWheelVelocity", () -> rightFlywheelEncoder.getVelocity());
+        shuffleboardTab.addNumber("leftFlywheelSpeed", () -> flyWheelSpeedLeft);
+        shuffleboardTab.addNumber("rightFlywheelSpeed", () -> flyWheelSpeedRight);
         flywheelSpeedEntry = shuffleboardTab.add("Set Flywheel Velocity", Double.valueOf(0)).getEntry();
         hoodAngleEntry = shuffleboardTab.add("Set Hood Angle", Double.valueOf(0)).getEntry();
     }
@@ -149,7 +153,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * Allows external systems to set the speed for the flywheel for both motors.
      */
     public void setFlyWheelSpeed(double speed) {
-        flyWheelSpeed = speed;
+        flyWheelSpeedLeft = speed;
+        flyWheelSpeedRight = -speed;
     }
 
     public void setHoodAngle(double angle) {
@@ -161,7 +166,8 @@ public class ShooterSubsystem extends SubsystemBase {
      * @return
      */
     public void readFromShuffleboard() {
-        flyWheelSpeed = flywheelSpeedEntry.getDouble(0);
+        flyWheelSpeedRight = -0.444; // -flywheelSpeedEntry.getDouble(0);
+        flyWheelSpeedLeft = flywheelSpeedEntry.getDouble(0);
         currentHoodPosition = hoodAngleEntry.getDouble(0);
     }
 
@@ -193,8 +199,10 @@ public class ShooterSubsystem extends SubsystemBase {
      * target velocity, regardless of battery power or other constraints.
      */
     private void accelerateFlywheels() {
-        leftFlywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
-        rightFlywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
+        // leftFlywheel_pidController.setReference(flyWheelSpeedLeft, CANSparkMax.ControlType.kVelocity);
+        // rightFlywheel_pidController.setReference(flyWheelSpeedRight, CANSparkMax.ControlType.kVelocity);
+        leftFlyWheel.set(flyWheelSpeedLeft);
+        rightFlyWheel.set(flyWheelSpeedRight);
     }
 
     /**
