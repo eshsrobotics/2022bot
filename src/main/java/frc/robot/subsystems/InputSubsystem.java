@@ -51,6 +51,7 @@ public class InputSubsystem extends SubsystemBase {
      */
     private Button fireButton_ = null;
 
+
     /**
      * A button that tracks whether or not the human drivers (well, really,
      * the human holding the auxiliary controller) wishes to manually override
@@ -69,6 +70,7 @@ public class InputSubsystem extends SubsystemBase {
     private Button climbUpButton_ = null;
     private Button climbDownButton_ = null;
     private Button rumbleDriveButton_ = null;
+    private Button readShuffleboardButton_ = null;
 
     /**
      * Initializes this object and determines which input methods are usable.
@@ -135,6 +137,10 @@ public class InputSubsystem extends SubsystemBase {
         manualOverrideButton_ = new Button (() -> {
             return controllers[AUXILIARY_CONTROLLER_INDEX].getLeftTriggerAxis() > 0;
         });
+        readShuffleboardButton_ = new Button(() ->{
+            return controllers[AUXILIARY_CONTROLLER_INDEX].getYButton();
+        });
+
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
         shuffleboardTab.addNumber("frontBack", () -> frontBack);
         shuffleboardTab.addNumber("leftRight", () -> leftRight);
@@ -296,6 +302,16 @@ public class InputSubsystem extends SubsystemBase {
 
     public Button hoodDownButton() {
         return hoodDownButton_;
+    }
+
+    /**
+     * Returns a {@link Button} that, when pressed, will read critical values
+     * from the <code>Shooter</code> tab of the {@link Shuffleboard}
+     * (specifically, the flywheel speed and hood angle.)  This permits manual
+     * override for testing purposes.
+     */
+    public Button readShuffleboardButton() {
+        return readShuffleboardButton_;
     }
 
     /**

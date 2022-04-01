@@ -10,12 +10,14 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.Constants;
 
 /**
@@ -74,22 +76,26 @@ public class ShooterSubsystem extends SubsystemBase {
     private CANSparkMax turntableMotor = null;
     private CANSparkMax leftFlyWheel = null;
     private CANSparkMax rightFlyWheel = null;
-    private SparkMaxPIDController rightflywheel_pidController = null;
-    private SparkMaxPIDController leftflywheel_pidController = null;
+    private SparkMaxPIDController rightFlywheel_pidController = null;
+    private SparkMaxPIDController leftFlywheel_pidController = null;
 
-    private RelativeEncoder rightflywheelEncoder = null;
-    private RelativeEncoder leftflywheelEncoder = null;
+    private RelativeEncoder rightFlywheelEncoder = null;
+    private RelativeEncoder leftFlywheelEncoder = null;
 
+    /**
+     * Overall speed of the flywheels, between 0.0 and 1.0.
+     */
     private double flyWheelSpeed = 0;
 
     private static final double P = 1.0;
     private static final double I = 1.0;
     private static final double D = 0.01;
 
+    private NetworkTableEntry flywheelSpeedEntry = null;
 
     private enum turntableStates {
         FREE_TO_MOVE_STATE,
-        RESRTICT_MOVE_UNTIL_RELEASED
+        RESTRICT_MOVE_UNTIL_RELEASED
     }
 
     private turntableStates currentState = turntableStates.FREE_TO_MOVE_STATE;
@@ -107,20 +113,20 @@ public class ShooterSubsystem extends SubsystemBase {
         leftFlyWheel = new CANSparkMax(Constants.FLYWHEEL_RIGHT_CAN_ID, MotorType.kBrushless);
         rightFlyWheel = new CANSparkMax(Constants.FLYWHEEL_LEFT_CAN_ID, MotorType.kBrushless);
 
-        // Intializing the PIDcontroller to the repected motor CAN Spark Max. 
-        rightflywheel_pidController = rightFlyWheel.getPIDController();
-        leftflywheel_pidController = leftFlyWheel.getPIDController();
-        
-        leftflywheelEncoder = leftFlyWheel.getEncoder();
-        rightflywheelEncoder = rightFlyWheel.getEncoder();
+        // Initializing the PIDcontroller to the respective motor CAN Spark Max.
+        rightFlywheel_pidController = rightFlyWheel.getPIDController();
+        leftFlywheel_pidController = leftFlyWheel.getPIDController();
 
-        leftflywheel_pidController.setP(P);
-        leftflywheel_pidController.setI(I);
-        leftflywheel_pidController.setD(D);
+        leftFlywheelEncoder = leftFlyWheel.getEncoder();
+        rightFlywheelEncoder = rightFlyWheel.getEncoder();
 
-        rightflywheel_pidController.setP(P);
-        rightflywheel_pidController.setI(I);
-        rightflywheel_pidController.setD(D);
+        leftFlywheel_pidController.setP(P);
+        leftFlywheel_pidController.setI(I);
+        leftFlywheel_pidController.setD(D);
+
+        rightFlywheel_pidController.setP(P);
+        rightFlywheel_pidController.setI(I);
+        rightFlywheel_pidController.setD(D);
 
         turntableLimitSwitch = new DigitalInput(Constants.SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT);
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
@@ -132,21 +138,35 @@ public class ShooterSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("currentHoodPosition", () -> currentHoodPosition);
         shuffleboardTab.addNumber("currentHoodIncrement", () -> currentHoodIncrement);
         shuffleboardTab.addBoolean("turntableLimitSwitch", () -> turntableLimitSwitch.get());
-        shuffleboardTab.addNumber("leftFlyWheelVelocity", () -> leftflywheelEncoder.getVelocity());
-        shuffleboardTab.addNumber("rightFlyWheelVelocity", () -> rightflywheelEncoder.getVelocity());
+        shuffleboardTab.addNumber("leftFlyWheelVelocity", () -> leftFlywheelEncoder.getVelocity());
+        shuffleboardTab.addNumber("rightFlyWheelVelocity", () -> rightFlywheelEncoder.getVelocity());
+        flywheelSpeedEntry = shuffleboardTab.add("Set Flywheel Velocity", Double.valueOf(0)).getEntry();
     }
 
     /**
-     *  Allows external systems to set the speed for the flywheel for both motors. 
+     * Allows external systems to set the speed for the flywheel for both motors.
      */
     public void setFlyWheelSpeed(double speed) {
         flyWheelSpeed = speed;
-    } 
+    }
+
+    /**
+     * Gets the shuffleboard number and overrides the flywheel motors to go that
+     * fast- for testing purposes.
+     * @return
+     */
+    public void readFromShuffleboard() {
+        flyWheelSpeed = flywheelSpeedEntry.getDouble(0);
+    }
 
     @Override
     public void periodic() {
         maybeRotateTurntable();
+        accelerateFlywheels();
+        adjustHood();
+    }
 
+    private void adjustHood() {
         // Make the hood raise or lower (or stand still) over time, until it
         // reaches the limit.
         currentHoodPosition += currentHoodIncrement;
@@ -159,18 +179,16 @@ public class ShooterSubsystem extends SubsystemBase {
         }
         leftServo.setPosition(currentHoodPosition);
         rightServo.setPosition(currentHoodPosition);
-
     }
 
     /**
-     *  Both set the velocity for both flywheel mototrs to be constant and
-     *  keeps them constant.  
+     * Helper function for {@link #periodic()}.  Instantaneously adjust the
+     * speeds of the left and right (bottom) flywheel motors so they match a
+     * target velocity, regardless of battery power or other constraints.
      */
     private void accelerateFlywheels() {
-        leftflywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
-        rightflywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
-
-
+        leftFlywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
+        rightFlywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
     }
 
     /**
@@ -227,10 +245,10 @@ public class ShooterSubsystem extends SubsystemBase {
                     // Limit witch is hit; ban furter motion in that direction of the
                     // travel.
                     turntablePermittedDirection = (int) -Math.signum(turntableSpeed);
-                    currentState = turntableStates.RESRTICT_MOVE_UNTIL_RELEASED;
+                    currentState = turntableStates.RESTRICT_MOVE_UNTIL_RELEASED;
                 }
                 break;
-            case RESRTICT_MOVE_UNTIL_RELEASED:
+            case RESTRICT_MOVE_UNTIL_RELEASED:
                 if (!turntableLimitSwitch.get()) {
                     // When the limit switch is not being pressed, meaning it has been
                     // released, the turntable moves back to the FREE_TO_MOVE_STATE.
