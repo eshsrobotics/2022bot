@@ -126,7 +126,7 @@ public final class Constants {
         /**
          * Identify the indexer for both CAN Spark Maxes on the right and left side.
          */
-        public static final int INDEXER_ROLLER_RIGHT_CAN_ID = 10; 
+        public static final int INDEXER_ROLLER_RIGHT_CAN_ID = 10;
         public static final int INDEXER_ROLLER_LEFT_CAN_ID = 11;
 
         /**
@@ -134,6 +134,13 @@ public final class Constants {
          */
         public static final int FLYWHEEL_RIGHT_CAN_ID = 12;
         public static final int FLYWHEEL_LEFT_CAN_ID = 13;
+
+        /**
+         * Indentify the Climber for CAN Spark Maxes on the climber mechanism.
+         */
+        public static final int CLIMBER_CAN_ID = 14;
+
+        public static final double CLIMBER_SPEED = 0.20;
 
         ////////////////////////////
         // Controller (USB) ports //

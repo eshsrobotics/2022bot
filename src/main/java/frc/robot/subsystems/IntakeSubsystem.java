@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorSensorV3;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -126,6 +128,12 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     private DigitalInput indexerSensor = null;
 
+    /**
+     * left and right Indexer motor initalizations
+     */
+    private CANSparkMax leftIndexerMotor = null;
+    private CANSparkMax rightIndexerMotor = null;
+    
       //private final Compressor compressor = new Compressor();
     //private final DoubleSolenoid solenoid = new DoubleSolenoid();
 
@@ -160,6 +168,10 @@ public class IntakeSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
         shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
 
+        //indexer motors 
+        leftIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_LEFT_CAN_ID, MotorType.kBrushless);
+        rightIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_RIGHT_CAN_ID, MotorType.kBrushless);
+        
         // For the pneumatic solenoids.
         comp = new Compressor(0, PneumaticsModuleType.CTREPCM);
         solenoidRight = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);

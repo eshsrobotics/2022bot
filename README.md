@@ -120,6 +120,8 @@ Motor distribution is as follows:
 - Intake/uptake subsystem:
   11. Indexer roller left (Brushless NEO 550 @ Spark MAX)
   10. Indexer roller right (Brushless NEO 550 @ Spark MAX)
+- ClimberSubsystem:
+  14. Climber (Brushless NEW @ Spark MAX)
 
 ### PWM ports ###
 
