@@ -62,7 +62,7 @@ public class RobotContainer {
       //
       double speedFromVision = visionSubsystem.getTurnSpeed() * 0.1;
       if (speedFromVision != 0) {
-        // shooterSubsystem.turn(speedFromVision);
+        // shooterSubsystem.setVisionTurnSpeed(speedFromVision);
       }
 
       // TODO: Add code here to automatically adjust the hood and the flywheel speed
@@ -144,35 +144,35 @@ public class RobotContainer {
     /////////////////////////////////////////////////////////////////
 
     if (inputSubsystem.getTurntableLeftButton() != null) {
-      inputSubsystem.getTurntableLeftButton().whileHeld(new InstantCommand(() -> {
+      inputSubsystem.getTurntableLeftButton().whileHeld(() -> {
         // Rotate the shooter turntable counterclockwise, but only if the
         // manual override is held down.
         Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
         if (manualOverrideButton != null && manualOverrideButton.get()) {
-          shooterSubsystem.turn(-0.25);
+          shooterSubsystem.setManualTurnSpeed(-0.25);
         }
-      }));
-      inputSubsystem.getTurntableLeftButton().whenReleased(new InstantCommand(() -> {
+      });
+      inputSubsystem.getTurntableLeftButton().whenReleased(() -> {
         // Releasing will stop the turntable even without feedback from
         // the manual override. This adheres to the Principle of Least
         // Astonishment.
-        shooterSubsystem.turn(0);
-      }));
+        shooterSubsystem.setManualTurnSpeed(0);
+      });
     }
 
     if (inputSubsystem.getTurntableRightButton() != null) {
-      inputSubsystem.getTurntableRightButton().whileHeld(new InstantCommand(() -> {
+      inputSubsystem.getTurntableRightButton().whileHeld(() -> {
         // Rotate the shooter turntable clockwise, but only if the manual
         // override is held down.
         Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
         if (manualOverrideButton != null && manualOverrideButton.get()) {
-          shooterSubsystem.turn(+0.25);
+          shooterSubsystem.setManualTurnSpeed(+0.25);
         }
-      }));
-      inputSubsystem.getTurntableRightButton().whenReleased(new InstantCommand(() -> {
+      });
+      inputSubsystem.getTurntableRightButton().whenReleased(() -> {
         // See above.
-        shooterSubsystem.turn(0);
-      }));
+        shooterSubsystem.setManualTurnSpeed(0);
+      });
     }
 
     Button fireButton = inputSubsystem.fireButton();
