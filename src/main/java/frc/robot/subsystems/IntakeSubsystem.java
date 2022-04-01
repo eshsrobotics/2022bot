@@ -6,6 +6,7 @@ import com.revrobotics.ColorSensorV3;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -13,7 +14,10 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class IntakeSubsystem extends SubsystemBase {
@@ -129,6 +133,19 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     private CANSparkMax leftIndexerMotor = null;
     private CANSparkMax rightIndexerMotor = null;
+    
+      //private final Compressor compressor = new Compressor();
+    //private final DoubleSolenoid solenoid = new DoubleSolenoid();
+
+    private Compressor comp = null;
+    private DoubleSolenoid solenoidRight = null;
+    private DoubleSolenoid solenoidLeft = null;
+
+    /**
+     * The state of the intake. If true, the intake is deployed. When we turn
+     * the robot on, we expect the intake to be in the upright position (ie, false).
+     */
+    private boolean intakeDeployedState = false;
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
@@ -154,6 +171,16 @@ public class IntakeSubsystem extends SubsystemBase {
         //indexer motors 
         leftIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_LEFT_CAN_ID, MotorType.kBrushless);
         rightIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_RIGHT_CAN_ID, MotorType.kBrushless);
+        
+        // For the pneumatic solenoids.
+        comp = new Compressor(0, PneumaticsModuleType.CTREPCM);
+        solenoidRight = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+        solenoidLeft = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
+
+        // Activate the compressor immediately. There are pressure gauges on the robot
+        // that will automatically stop and start the compressor when the pressure dips
+        // below the working and storage pressure.
+        comp.enableAnalog(Constants.MINIMUM_COMPRESSOR_PSI, Constants.MAXIMUM_COMPRESSOR_PSI);
     }
 
     /**
@@ -270,8 +297,8 @@ public class IntakeSubsystem extends SubsystemBase {
                 // digestive system; Rapid React rules forbid a robot from eating
                 // more than two.  So we must politely decline any future chance of
                 // of a meal.  For now.
-                intakeMotor.stopMotor();
-                uptakeMotor.stopMotor();
+                //intakeMotor.stopMotor();
+                //uptakeMotor.stopMotor();
 
                 if (commandedToFire()) {
                     currentState = StateValues.INTAKE_UPTAKE_ON_FIRING;
@@ -301,17 +328,17 @@ public class IntakeSubsystem extends SubsystemBase {
                 break;
             } // periodic ends
         }
-    
+
     /**
      * Changes intake wheel direction depeding on the color of the ball.
      * Uses color alliance and ball color from color sensor.
      */
     private void updateIntakeSpeed() {
-        
+
         boolean blueBallDetected = false;
         boolean onBlueAlliance = (DriverStation.getAlliance() == DriverStation.Alliance.Blue);
 
-        if (onBlueAlliance != blueBallDetected) {  
+        if (onBlueAlliance != blueBallDetected) {
             intakeSpeed = REJECTION_INTAKING_SPEED;
         }
         else {
@@ -351,8 +378,8 @@ public class IntakeSubsystem extends SubsystemBase {
      * @return Temporarily true all the time
      */
     public boolean ballInUptake() {
-        // TODO: Once the sensor is implemented, change varible and method right.
-        return true;
+        // No sensor in the uptake. Will return false as we are unsure as to whether there is a ball
+        return false;
     }
 
     /**
@@ -370,10 +397,25 @@ public class IntakeSubsystem extends SubsystemBase {
         return receivedFireCommand;
     }
 
+    /**
+     * Deploy or retract the intake assembly.
+     * @param deploy True if the intake should be deployed out, and false if
+     *               we should retract it inward.
+     */
+    public void deployIntake(boolean deploy) {
+        if (deploy) {
+            solenoidLeft.set(DoubleSolenoid.Value.kForward);
+            solenoidRight.set(DoubleSolenoid.Value.kForward);
+        } else {
+            solenoidLeft.set(DoubleSolenoid.Value.kReverse);
+            solenoidRight.set(DoubleSolenoid.Value.kReverse);
+        }
+        intakeDeployedState = deploy;
+    }
 
-
-
-
+    public boolean isIntakeDeployed() {
+        return intakeDeployedState;
+    }
 }
 
 

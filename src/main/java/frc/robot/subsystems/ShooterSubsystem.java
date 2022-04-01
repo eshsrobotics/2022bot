@@ -1,13 +1,20 @@
 package frc.robot.subsystems;
 
+import java.security.spec.EncodedKeySpec;
+
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -65,6 +72,20 @@ public class ShooterSubsystem extends SubsystemBase {
     private PWM rightServo = null;
     private DigitalInput turntableLimitSwitch = null;
     private CANSparkMax turntableMotor = null;
+    private CANSparkMax leftFlyWheel = null;
+    private CANSparkMax rightFlyWheel = null;
+    private SparkMaxPIDController rightflywheel_pidController = null;
+    private SparkMaxPIDController leftflywheel_pidController = null;
+
+    private RelativeEncoder rightflywheelEncoder = null;
+    private RelativeEncoder leftflywheelEncoder = null;
+
+    private double flyWheelSpeed = 0;
+
+    private static final double P = 1.0;
+    private static final double I = 1.0;
+    private static final double D = 0.01;
+
 
     private enum turntableStates {
         FREE_TO_MOVE_STATE,
@@ -75,17 +96,34 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /**
      * Initializes the hooded shooter while simultaneously pulling down
-     * the hooded shooter to its start position at zero.
+     * the hooded shooter to it"s start position at zero.
      */
     public ShooterSubsystem() {
         // We are assuming that these two expressions never throw exceptions.
         leftServo = new PWM(Constants.HOOD_LEFT_SERVO_PWM_PORT);
         rightServo = new PWM(Constants.HOOD_RIGHT_SERVO_PWM_PORT);
 
+        // Initialize the shooter flywheels.  We have two -- one on each side.
+        leftFlyWheel = new CANSparkMax(Constants.FLYWHEEL_RIGHT_CAN_ID, MotorType.kBrushless);
+        rightFlyWheel = new CANSparkMax(Constants.FLYWHEEL_LEFT_CAN_ID, MotorType.kBrushless);
+
+        // Intializing the PIDcontroller to the repected motor CAN Spark Max. 
+        rightflywheel_pidController = rightFlyWheel.getPIDController();
+        leftflywheel_pidController = leftFlyWheel.getPIDController();
+        
+        leftflywheelEncoder = leftFlyWheel.getEncoder();
+        rightflywheelEncoder = rightFlyWheel.getEncoder();
+
+        leftflywheel_pidController.setP(P);
+        leftflywheel_pidController.setI(I);
+        leftflywheel_pidController.setD(D);
+
+        rightflywheel_pidController.setP(P);
+        rightflywheel_pidController.setI(I);
+        rightflywheel_pidController.setD(D);
+
         turntableLimitSwitch = new DigitalInput(Constants.SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT);
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
-
-
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Shooter");
         shuffleboardTab.addNumber("turntableSpeed", () -> turntableSpeed);
@@ -94,8 +132,16 @@ public class ShooterSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("currentHoodPosition", () -> currentHoodPosition);
         shuffleboardTab.addNumber("currentHoodIncrement", () -> currentHoodIncrement);
         shuffleboardTab.addBoolean("turntableLimitSwitch", () -> turntableLimitSwitch.get());
-
+        shuffleboardTab.addNumber("leftFlyWheelVelocity", () -> leftflywheelEncoder.getVelocity());
+        shuffleboardTab.addNumber("rightFlyWheelVelocity", () -> rightflywheelEncoder.getVelocity());
     }
+
+    /**
+     *  Allows external systems to set the speed for the flywheel for both motors. 
+     */
+    public void setFlyWheelSpeed(double speed) {
+        flyWheelSpeed = speed;
+    } 
 
     @Override
     public void periodic() {
@@ -113,6 +159,18 @@ public class ShooterSubsystem extends SubsystemBase {
         }
         leftServo.setPosition(currentHoodPosition);
         rightServo.setPosition(currentHoodPosition);
+
+    }
+
+    /**
+     *  Both set the velocity for both flywheel mototrs to be constant and
+     *  keeps them constant.  
+     */
+    private void accelerateFlywheels() {
+        leftflywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
+        rightflywheel_pidController.setReference(flyWheelSpeed, CANSparkMax.ControlType.kVelocity);
+
+
     }
 
     /**
@@ -151,8 +209,6 @@ public class ShooterSubsystem extends SubsystemBase {
             lastNonzeroTurntableSpeed = turntableSpeed;
         }
     }
-
-
 
     /**
      * Helper function for {@link #periodic()}. Rotates the turntable in the

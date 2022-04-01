@@ -110,11 +110,13 @@ Motor distribution is as follows:
         [SparkMaxAlternateEncoder](https://codedocs.revrobotics.com/java/com/revrobotics/sparkmaxalternateencoder)
         -- since we can get the set point from the vision subsystem, we can put
         this on PWM if we want.
-  11. Left shooter flywheel (Brushless NEO @ Spark MAX)
+  13. Left shooter flywheel (Brushless NEO @ Spark MAX)
   12. Right shooter flywheel (Brushless NEO @ Spark MAX)
 - Intake/uptake subsystem:
-  13. Indexer roller left (Brushless NEO 550 @ Spark MAX)
+  11. Indexer roller left (Brushless NEO 550 @ Spark MAX)
   10. Indexer roller right (Brushless NEO 550 @ Spark MAX)
+- ClimberSubsystem:
+  14. Climber (Brushless NEW @ Spark MAX)
 
 ### PWM ports ###
 
@@ -128,7 +130,6 @@ Motor distribution is as follows:
 - Shooter subsystem::
   2. Left Hood Servo Motor (Linear servo @ Servo Power Hub)
   3. Right Hood Servo Motor (Linear servo @ Servo Power Hub)
-  4. Shooter Flywheel Motor
 
 ### PCM and air circuit ###
 

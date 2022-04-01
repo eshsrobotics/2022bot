@@ -123,6 +123,25 @@ public final class Constants {
          */
         public static final double SHOOTER_TURN_TABLE_GEAR_RATIO = 10.0/140.0;
 
+        /**
+         * Identify the indexer for both CAN Spark Maxes on the right and left side.
+         */
+        public static final int INDEXER_ROLLER_RIGHT_CAN_ID = 10;
+        public static final int INDEXER_ROLLER_LEFT_CAN_ID = 11;
+
+        /**
+         * Identify the Flywheel for both CAN Spark Maxes on the right and left side.
+         */
+        public static final int FLYWHEEL_RIGHT_CAN_ID = 12;
+        public static final int FLYWHEEL_LEFT_CAN_ID = 13;
+
+        /**
+         * Indentify the Climber for CAN Spark Maxes on the climber mechanism.
+         */
+        public static final int CLIMBER_CAN_ID = 14;
+
+        public static final double CLIMBER_SPEED = 0.20;
+
         ////////////////////////////
         // Controller (USB) ports //
         ////////////////////////////
@@ -142,16 +161,16 @@ public final class Constants {
         };
 
         public static final String[] DRIVE_CONTROLLER_NAME_PRIORITY = {
-                // An acutal XBox controller. Driver preference and can be programmed to 
-                // rumble to distiguish between controller types. 
+                // An acutal XBox controller. Driver preference and can be programmed to
+                // rumble to distiguish between controller types.
                 "Controller (Xbox One for Windows)",
-                
+
                 // Jacob's Black XBox Controller
-                "Bluetooth XINPUT compatible input device" 
+                "Bluetooth XINPUT compatible input device"
         };
 
         public static final String[] AUXILARY_CONTROLLER_NAME_PRIORITY = {
-                // Nintendo Switch controller. Same setup as an Xbox controller but second 
+                // Nintendo Switch controller. Same setup as an Xbox controller but second
                 // priority to the drive controller.
                 "Pro Controller"
         };
@@ -209,10 +228,10 @@ public final class Constants {
         public static final int SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT = 4;
 
 
-        /** 
+        /**
          * DIO port where the indexer sensor for the intake/uptake system is.
          * Indexer sensor tests when there is a ball in the indexer.
-         * */ 
+         * */
 
         public static final int INDEX_SENSOR_DIO_PORT = 5;
 
@@ -312,4 +331,11 @@ public final class Constants {
                 255.0, // Back Right
                 202.0  // Front Right
         };
+
+        //////////////////////////
+        // Compressor Constants //
+        //////////////////////////
+
+        public static final double MINIMUM_COMPRESSOR_PSI = 100;
+        public static final double MAXIMUM_COMPRESSOR_PSI = 120;
 }
