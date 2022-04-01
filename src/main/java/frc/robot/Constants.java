@@ -231,9 +231,14 @@ public final class Constants {
         /**
          * DIO port where the indexer sensor for the intake/uptake system is.
          * Indexer sensor tests when there is a ball in the indexer.
-         * */
-
+         */
         public static final int INDEX_SENSOR_DIO_PORT = 5;
+
+        /**
+         * Another break-beam infrared digital on/off sensor, this time for detecting
+         * balls in the uptake.
+         */
+        public static final int UPTAKE_SENSOR_DIO_PORT = 6;
 
         /////////////////////////////////////////////
         // Constants measured in real-world units. //
