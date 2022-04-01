@@ -114,6 +114,11 @@ public class ShooterSubsystem extends SubsystemBase {
         rightFlyWheel = new CANSparkMax(Constants.FLYWHEEL_LEFT_CAN_ID, MotorType.kBrushless);
         upperFlywheel = new Spark(Constants.SHOOTER_UPPER_FLYWHEEL_PWM_PORT);
 
+        // Intentionally stop the flywheels.
+        flyWheelSpeedLeft = 0;
+        flyWheelSpeedRight = 0;
+        accelerateFlywheels();
+
         // Initializing the PIDcontroller to the respective motor CAN Spark Max.
         rightFlywheel_pidController = rightFlyWheel.getPIDController();
         leftFlywheel_pidController = leftFlyWheel.getPIDController();

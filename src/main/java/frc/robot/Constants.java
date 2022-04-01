@@ -366,5 +366,5 @@ public final class Constants {
          * The speed at which to run the indexer motors when they are releasing a ball
          * to the shooter.
          */
-        public static final double INDEXER_SPEED = 0.5;
+        public static final double INDEXER_SPEED = -1.0;
 }

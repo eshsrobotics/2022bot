@@ -160,7 +160,7 @@ public class IntakeSubsystem extends SubsystemBase {
         var shuffleboardTab = Shuffleboard.getTab("Intake");
         shuffleboardTab.addBoolean("intakeUptakeEnabled", () -> intakeAndUptakeEnabled);
         shuffleboardTab.addBoolean("receivedFireCommand", () -> receivedFireCommand);
-        shuffleboardTab.addNumber("pneumaticsDeployStartTimeSec", () -> pneumaticsDeployStartTimeSec);
+        shuffleboardTab.addNumber("intakeSpeed", () -> intakeSpeed);
         shuffleboardTab.addString("currentState", () -> currentState.toString());
 
         // For the Color Sensor.
