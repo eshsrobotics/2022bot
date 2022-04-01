@@ -137,6 +137,13 @@ public class RobotContainer {
       });
     }
 
+    Button intakeReverseDirectionButton = inputSubsystem.getIntakeReverseButton();
+    if(intakeReverseDirectionButton != null) {
+      intakeReverseDirectionButton.whenPressed(() -> {
+        intakeSubsystem.intakeMotor(REJECTION_INTAKING_SPEED);
+      });
+    }
+
     /////////////////////////////////////////////////////////////////
     // Manual overrides.                                           //
     //                                                             //
