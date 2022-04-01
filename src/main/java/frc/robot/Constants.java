@@ -140,7 +140,11 @@ public final class Constants {
          */
         public static final int CLIMBER_CAN_ID = 14;
 
-        public static final double CLIMBER_SPEED = 0.20;
+        /**
+         * What speed value, from 0.0 to 1.0, to give the climber when it is climbing up
+         * (pushing away from the ground) or climbing down (pulling toward the ground).
+         */
+        public static final double CLIMBER_SPEED = 0.40;
 
         ////////////////////////////
         // Controller (USB) ports //
@@ -231,9 +235,14 @@ public final class Constants {
         /**
          * DIO port where the indexer sensor for the intake/uptake system is.
          * Indexer sensor tests when there is a ball in the indexer.
-         * */
-
+         */
         public static final int INDEX_SENSOR_DIO_PORT = 5;
+
+        /**
+         * Another break-beam infrared digital on/off sensor, this time for detecting
+         * balls in the uptake.
+         */
+        public static final int UPTAKE_SENSOR_DIO_PORT = 6;
 
         /////////////////////////////////////////////
         // Constants measured in real-world units. //
@@ -338,4 +347,18 @@ public final class Constants {
 
         public static final double MINIMUM_COMPRESSOR_PSI = 100;
         public static final double MAXIMUM_COMPRESSOR_PSI = 120;
+
+        //////////////////////////
+        /// Shooter Constants ///
+        //////////////////////////
+
+        /**
+         * We desire for balls launched by the shooter to travel in a parabolic arc.  This is determined
+         * by the lower flywheel(s) and hood, but we added the upper flywheel to perform fine adjustments
+         * of the trajectory and mitigate backspin.
+         *
+         * The idea here is that we will reduce the number of variables we have to work with by always
+         * making the upper flywheel speed a function of the lower flywheel speed.
+         */
+        public static final double UPPER_FLYWHEEL_MUTIPLIER = 1;
 }

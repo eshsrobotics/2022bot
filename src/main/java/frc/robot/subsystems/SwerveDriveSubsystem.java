@@ -77,7 +77,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public SwerveDriveSubsystem(InputSubsystem inputSubsystem, Gyro gyro) {
 
         this.inputSubsystem = inputSubsystem;
-        this.gyro = new ADXRS450_Gyro();
         this.gyro = gyro;
 
         final double horizontal = Constants.WHEEL_BASE_WIDTH_METERS/2;

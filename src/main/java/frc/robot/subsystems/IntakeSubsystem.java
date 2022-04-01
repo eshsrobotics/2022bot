@@ -263,8 +263,8 @@ public class IntakeSubsystem extends SubsystemBase {
                     // TODO: Replace with a test that actually uses the indexer sensor.
                     currentState = StateValues.INTAKE_UPTAKE_ON;
                     System.out.print("Turning indexer on\n");
-                    leftIndexerMotor.stopMotor();
-                    rightIndexerMotor.stopMotor();
+                    // leftIndexerMotor.stopMotor();
+                    // rightIndexerMotor.stopMotor();
                     indexerStartTimeSec = 0;
                 }
                 break;
@@ -320,6 +320,8 @@ public class IntakeSubsystem extends SubsystemBase {
                     // We just entered the INTAKE_UPTAKE_OFF_FIRING state.
                     indexerStartTimeSec = Timer.getFPGATimestamp();
                     System.out.print("Releasing Ball - spinning indexer forward\n");
+                    leftIndexerMotor.set(0.5);
+                    rightIndexerMotor.set(-0.5);
                 }
                 if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
                     // If control is here, ball has been shot
@@ -328,6 +330,8 @@ public class IntakeSubsystem extends SubsystemBase {
                     currentState = StateValues.INTAKE_UPTAKE_OFF;
                     System.out.print("Turning indexer off\n");
                     indexerStartTimeSec = 0;
+                    // leftIndexerMotor.stopMotor();
+                    // rightIndexerMotor.stopMotor();
                 }
                 break;
             } // periodic ends

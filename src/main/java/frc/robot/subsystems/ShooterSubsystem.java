@@ -7,9 +7,12 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -79,6 +82,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private CANSparkMax rightFlyWheel = null;
     private SparkMaxPIDController rightFlywheel_pidController = null;
     private SparkMaxPIDController leftFlywheel_pidController = null;
+    private PWMMotorController upperFlywheel = null;
 
     private RelativeEncoder rightFlywheelEncoder = null;
     private RelativeEncoder leftFlywheelEncoder = null;
@@ -89,7 +93,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private double flyWheelSpeedRight = 0;
     private double flyWheelSpeedLeft = 0;
 
-    private static final double P = 0.01;
+    private static final double P = 1;
     private static final double I = 0.01;
     private static final double D = 0.00;
 
@@ -108,6 +112,7 @@ public class ShooterSubsystem extends SubsystemBase {
         // Initialize the shooter flywheels.  We have two -- one on each side.
         leftFlyWheel = new CANSparkMax(Constants.FLYWHEEL_RIGHT_CAN_ID, MotorType.kBrushless);
         rightFlyWheel = new CANSparkMax(Constants.FLYWHEEL_LEFT_CAN_ID, MotorType.kBrushless);
+        upperFlywheel = new Spark(Constants.SHOOTER_UPPER_FLYWHEEL_PWM_PORT);
 
         // Initializing the PIDcontroller to the respective motor CAN Spark Max.
         rightFlywheel_pidController = rightFlyWheel.getPIDController();
@@ -147,21 +152,20 @@ public class ShooterSubsystem extends SubsystemBase {
      * Allows external systems to set the speed for the flywheel for both motors.
      */
     public void setFlyWheelSpeed(double speed) {
-        flyWheelSpeedLeft = speed;
-        flyWheelSpeedRight = -speed;
+        flyWheelSpeedLeft = MathUtil.clamp(speed, -1.0, 1.0);
+        flyWheelSpeedRight = -MathUtil.clamp(speed, -1.0, 1.0);
     }
 
     public void setHoodAngle(double angle) {
         currentHoodPosition = angle;
     }
     /**
-     * Gets the shuffleboard number and overrides the flywheel motors to go that
-     * fast- for testing purposes.
-     * @return
+     * Reads shuffleboard entries related to the shooter and updates the flywheel speeds
+     * and hood angles accordingly.  This is used for rapid testing purposes.
      */
     public void readFromShuffleboard() {
-        flyWheelSpeedRight = -0.444; // -flywheelSpeedEntry.getDouble(0);
-        flyWheelSpeedLeft = flywheelSpeedEntry.getDouble(0);
+        flyWheelSpeedRight = -MathUtil.clamp(flywheelSpeedEntry.getDouble(0), -1.0, 1.0);
+        flyWheelSpeedLeft = MathUtil.clamp(flywheelSpeedEntry.getDouble(0), -1.0, 1.0);
         currentHoodPosition = hoodAngleEntry.getDouble(0);
     }
 
@@ -197,6 +201,11 @@ public class ShooterSubsystem extends SubsystemBase {
         // rightFlywheel_pidController.setReference(flyWheelSpeedRight, CANSparkMax.ControlType.kVelocity);
         leftFlyWheel.set(flyWheelSpeedLeft);
         rightFlyWheel.set(flyWheelSpeedRight);
+
+        // For the upper flywheel to spin at the perfered speed, use the {@link Constant} along with a
+        // similar bottom flywheel value.
+        final double uppperFlywheel_ = Constants.UPPER_FLYWHEEL_MUTIPLIER * flyWheelSpeedRight;
+        upperFlywheel.set(uppperFlywheel_);
     }
 
     /**
@@ -293,4 +302,13 @@ public class ShooterSubsystem extends SubsystemBase {
             turntableMotor.set(finalTurntableSpeed);
         }
     }
+
+    // private void CaculateHoodAngle() {
+    //     double distance = Math.
+    //
+    //  }
+    //
+    // private void CaculateFlywheelSpeed() {
+    //     double distance = 0;
+    // }
 }

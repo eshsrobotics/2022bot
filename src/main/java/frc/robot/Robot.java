@@ -80,6 +80,8 @@ public class Robot extends TimedRobot {
     // When teleop begins, point all wheels forward.  This is a gradual process, and it'll take
     // a few milliseconds to complete.
     m_robotContainer.zeroPosition();
+
+    m_robotContainer.reassignControllers();
   }
 
   /** This function is called periodically during operator control. */
