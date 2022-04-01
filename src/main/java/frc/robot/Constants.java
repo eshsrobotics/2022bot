@@ -360,7 +360,7 @@ public final class Constants {
          * The idea here is that we will reduce the number of variables we have to work with by always
          * making the upper flywheel speed a function of the lower flywheel speed.
          */
-        public static final double UPPER_FLYWHEEL_MUTIPLIER = 1;
+        public static final double UPPER_FLYWHEEL_MUTIPLIER = 2;
 
         /**
          * The speed at which to run the indexer motors when they are releasing a ball
