@@ -195,6 +195,7 @@ public class RobotContainer {
       });
     }
 
+    // B Button on the auxillary controller.
     Button climbDownButton = inputSubsystem.getClimbDownButton();
     if (climbDownButton != null) {
       climbDownButton.whenHeld(new InstantCommand(() -> {
@@ -206,6 +207,7 @@ public class RobotContainer {
       });
     }
 
+    // A Button on the auxillary controller.
     Button climbUpButton = inputSubsystem.getClimbUpBotton();
     if (climbUpButton != null) {
       climbUpButton.whenHeld(new InstantCommand(() -> {
