@@ -63,7 +63,7 @@ public class RobotContainer {
       //
       double speedFromVision = visionSubsystem.getTurnSpeed() * 0.1;
       if (speedFromVision != 0) {
-        // shooterSubsystem.setVisionTurnSpeed(speedFromVision);
+        shooterSubsystem.setVisionTurnSpeed(speedFromVision);
       }
 
       // TODO: Add code here to automatically adjust the hood and the flywheel speed
