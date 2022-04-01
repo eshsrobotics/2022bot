@@ -92,6 +92,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final double D = 0.01;
 
     private NetworkTableEntry flywheelSpeedEntry = null;
+    private NetworkTableEntry hoodAngleEntry = null;
 
     private enum turntableStates {
         FREE_TO_MOVE_STATE,
@@ -141,6 +142,7 @@ public class ShooterSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("leftFlyWheelVelocity", () -> leftFlywheelEncoder.getVelocity());
         shuffleboardTab.addNumber("rightFlyWheelVelocity", () -> rightFlywheelEncoder.getVelocity());
         flywheelSpeedEntry = shuffleboardTab.add("Set Flywheel Velocity", Double.valueOf(0)).getEntry();
+        hoodAngleEntry = shuffleboardTab.add("Set Hood Angle", Double.valueOf(0)).getEntry();
     }
 
     /**
@@ -150,6 +152,9 @@ public class ShooterSubsystem extends SubsystemBase {
         flyWheelSpeed = speed;
     }
 
+    public void setHoodAngle(double angle) {
+        currentHoodPosition = angle;
+    }
     /**
      * Gets the shuffleboard number and overrides the flywheel motors to go that
      * fast- for testing purposes.
@@ -157,6 +162,7 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void readFromShuffleboard() {
         flyWheelSpeed = flywheelSpeedEntry.getDouble(0);
+        currentHoodPosition = hoodAngleEntry.getDouble(0);
     }
 
     @Override
