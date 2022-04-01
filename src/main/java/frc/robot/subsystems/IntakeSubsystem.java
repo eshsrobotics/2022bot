@@ -133,7 +133,7 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     private CANSparkMax leftIndexerMotor = null;
     private CANSparkMax rightIndexerMotor = null;
-    
+
       //private final Compressor compressor = new Compressor();
     //private final DoubleSolenoid solenoid = new DoubleSolenoid();
 
@@ -168,12 +168,12 @@ public class IntakeSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
         shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
 
-        //indexer motors 
+        //indexer motors
         leftIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_LEFT_CAN_ID, MotorType.kBrushless);
         rightIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_RIGHT_CAN_ID, MotorType.kBrushless);
-        
+
         // For the pneumatic solenoids.
-        comp = new Compressor(0, PneumaticsModuleType.CTREPCM);
+        comp = new Compressor(1, PneumaticsModuleType.CTREPCM);
         solenoidRight = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
         solenoidLeft = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
 
