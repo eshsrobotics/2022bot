@@ -107,6 +107,17 @@ public class RobotContainer {
       }));
     }
 
+    // Pressing the "Y" button on the auxiliary controller will read the
+    // flywheel speed and hood angle from special variables on the "Shooter"
+    // tab of the Shuffleboard.
+    Button shuffleboardButton = inputSubsystem.readShuffleboardButton();
+    if(shuffleboardButton != null) {
+      shuffleboardButton.whenPressed(() -> {
+        shooterSubsystem.readFromShuffleboard();
+      });
+    }
+
+
     // Use the BButton to turn the uptake/intake on and off.
     Button intakeTestButton = inputSubsystem.intakeTestButton();
     if (intakeTestButton != null) {

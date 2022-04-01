@@ -85,6 +85,11 @@ its front side facing away from the driver.
         Pressing the Ⓑ button will push the climber away from the robot, which
         during climbing will cause the robot to lower toward the ground and
         move away from the climbing  bar.
+    1. Ⓨ button: **Shuffleboard**
+
+      Pressing this button causes the shooter subsystem variable `flywheelSpeedEntry`
+      to read what is on the shuffleboard- this is for testing.
+
 
 ## Motor and port assignments ##
 
