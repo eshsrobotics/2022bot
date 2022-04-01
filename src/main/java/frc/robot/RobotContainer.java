@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -35,6 +36,7 @@ public class RobotContainer {
   private VisionSubsystem visionSubsystem = null;
   private Gyro gyro = null;
   private IntakeSubsystem intakeSubsystem = null;
+  private ClimberSubsystem climberSubsystem = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
 
@@ -46,6 +48,7 @@ public class RobotContainer {
     shooterSubsystem = new ShooterSubsystem();
     visionSubsystem = new VisionSubsystem(swerveDriveSubsystem.getGyro());
     intakeSubsystem = new IntakeSubsystem();
+    climberSubsystem = new ClimberSubsystem();
 
     // Calibrate the gyro when the robot turns on.
     gyro.calibrate();
@@ -173,7 +176,29 @@ public class RobotContainer {
         }
       });
     }
+
+    Button climbDownButton = inputSubsystem.getClimbDownButton();
+    if (climbDownButton != null) {
+      climbDownButton.whenHeld(new InstantCommand(() -> {
+        // Note: The climber will still be climbing when this command terminates.
+        climberSubsystem.climberDown();
+      }));
+      climbDownButton.whenReleased(() -> {
+        climberSubsystem.climberStop();
+      });
+    }
+
+    Button climbUpButton = inputSubsystem.getClimbUpBotton();
+    if (climbUpButton != null) {
+      climbUpButton.whenHeld(new InstantCommand(() -> {
+        climberSubsystem.climberUp();
+      }));
+      climbUpButton.whenReleased(() -> {
+        climberSubsystem.climberStop();
+      });
+    }
   }
+
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
