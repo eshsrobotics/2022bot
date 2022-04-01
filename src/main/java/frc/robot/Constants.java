@@ -348,9 +348,9 @@ public final class Constants {
         public static final double MINIMUM_COMPRESSOR_PSI = 100;
         public static final double MAXIMUM_COMPRESSOR_PSI = 120;
 
-        //////////////////////////
-        /// Shooter Constants ///
-        //////////////////////////
+        ////////////////////////////////////
+        /// Shooter and Indexer Constants //
+        ////////////////////////////////////
 
         /**
          * We desire for balls launched by the shooter to travel in a parabolic arc.  This is determined
@@ -361,4 +361,10 @@ public final class Constants {
          * making the upper flywheel speed a function of the lower flywheel speed.
          */
         public static final double UPPER_FLYWHEEL_MUTIPLIER = 1;
+
+        /**
+         * The speed at which to run the indexer motors when they are releasing a ball
+         * to the shooter.
+         */
+        public static final double INDEXER_SPEED = 0.5;
 }

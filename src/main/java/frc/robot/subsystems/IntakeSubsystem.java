@@ -6,7 +6,6 @@ import com.revrobotics.ColorSensorV3;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -109,7 +108,7 @@ public class IntakeSubsystem extends SubsystemBase {
      * Possible values are: {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_ON INTAKE_UPTAKE_ON},
      * {@link IntakeSubsystem#StateValues.INTAKE_UPTAKE_OFF INTAKE_UPTAKE_OFF}
      */
-    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_ON;
+    private static final StateValues STATE_AFTER_DEPLOY = StateValues.INTAKE_UPTAKE_OFF;
 
     /**
      * The uptake motor controls the diagonal belt which brings balls from the ground level up to the parallel indexer belts.
@@ -129,13 +128,15 @@ public class IntakeSubsystem extends SubsystemBase {
     private DigitalInput indexerSensor = null;
 
     /**
-     * left and right Indexer motor initalizations
+     * Evidently the uptake sensor is of the same type as the indexer sensor.
+     */
+    private DigitalInput uptakeSensor = null;
+
+    /**
+     * left and right Indexer motor initializations
      */
     private CANSparkMax leftIndexerMotor = null;
     private CANSparkMax rightIndexerMotor = null;
-
-      //private final Compressor compressor = new Compressor();
-    //private final DoubleSolenoid solenoid = new DoubleSolenoid();
 
     private Compressor comp = null;
     private DoubleSolenoid solenoidRight = null;
@@ -154,6 +155,7 @@ public class IntakeSubsystem extends SubsystemBase {
         uptakeMotor = new PWMSparkMax(Constants.UPTAKE_MOTOR_PWM_PORT);
         intakeMotor = new PWMSparkMax(Constants.INTAKE_MOTOR_PWM_PORT);
         indexerSensor = new DigitalInput(Constants.INDEX_SENSOR_DIO_PORT);
+        uptakeSensor = new DigitalInput(Constants.UPTAKE_SENSOR_DIO_PORT);
 
         var shuffleboardTab = Shuffleboard.getTab("Intake");
         shuffleboardTab.addBoolean("intakeUptakeEnabled", () -> intakeAndUptakeEnabled);
@@ -167,6 +169,7 @@ public class IntakeSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("blue", () -> colorSensor.getBlue());
         shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
         shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
+        shuffleboardTab.addBoolean("BallInUptake", () -> !uptakeSensor.get());
 
         //indexer motors
         leftIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_LEFT_CAN_ID, MotorType.kBrushless);
@@ -190,8 +193,10 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        intakeSpeed = NORMAL_INTAKING_SPEED;
 
+        // Our intakes can be operating in forward or reverse mode, depending
+        // on whether we are ingesting an enemy ball.
+        intakeSpeed = NORMAL_INTAKING_SPEED;
         updateIntakeSpeed();
 
         switch(currentState) {
@@ -210,7 +215,13 @@ public class IntakeSubsystem extends SubsystemBase {
                         pneumaticsDeployStartTimeSec = 0;
                     } else {
                         intakeAndUptakeEnabled = true;
+
+                        // TODO: Pneumatics should be enabled at the start of autonomous,
+                        // not immediately on robotInit() as this code does now.
+                        // Effectively, the transition from START to DEPLOY needs
+                        // to wait for a new external signal.
                         System.out.printf("Pneumatics Enabled\n");
+
                         // Set the start time if we just entered deploy
                         this.pneumaticsDeployStartTimeSec = Timer.getFPGATimestamp();
                     }
@@ -250,25 +261,16 @@ public class IntakeSubsystem extends SubsystemBase {
                 break;
 
             case INTAKE_UPTAKE_ON_FIRING:
-                if (indexerStartTimeSec == 0) {
-                    // We just entered the INTAKE_UPTAKE_ON_FIRING state.
-                    indexerStartTimeSec = Timer.getFPGATimestamp();
+                if (ballInIndexer()) {
                     System.out.print("Releasing Ball - spinning indexer forward\n");
-                    leftIndexerMotor.set(0.5);
-                    rightIndexerMotor.set(-0.5);
-                } else if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
-                    // If control makes here, we assume that the indexer has been on long
-                    // enough to have fully released the ball to the shooter.
-                    //
-                    // TODO: Replace with a test that actually uses the indexer sensor.
+                    leftIndexerMotor.set(Constants.INDEXER_SPEED);
+                    rightIndexerMotor.set(-Constants.INDEXER_SPEED);
+                } else {
+                    leftIndexerMotor.stopMotor();
+                    rightIndexerMotor.stopMotor();
                     currentState = StateValues.INTAKE_UPTAKE_ON;
-                    System.out.print("Turning indexer on\n");
-                    // leftIndexerMotor.stopMotor();
-                    // rightIndexerMotor.stopMotor();
-                    indexerStartTimeSec = 0;
                 }
                 break;
-
 
             case INTAKE_UPTAKE_OFF:
                 // As long as we're in this state, the intake and uptake should not be moving.
@@ -316,22 +318,15 @@ public class IntakeSubsystem extends SubsystemBase {
                 break;
 
             case INTAKE_UPTAKE_OFF_FIRING:
-                if (indexerStartTimeSec == 0) {
-                    // We just entered the INTAKE_UPTAKE_OFF_FIRING state.
-                    indexerStartTimeSec = Timer.getFPGATimestamp();
+                if (ballInIndexer()) {
                     System.out.print("Releasing Ball - spinning indexer forward\n");
-                    leftIndexerMotor.set(0.5);
-                    rightIndexerMotor.set(-0.5);
-                }
-                if (Timer.getFPGATimestamp() - indexerStartTimeSec >= WAIT_INDEXER_SPIN_TIME_SEC) {
-                    // If control is here, ball has been shot
-                    //
-                    // TODO: Replace with a test that actually uses the indexer sensor.
-                    currentState = StateValues.INTAKE_UPTAKE_OFF;
+                    leftIndexerMotor.set(Constants.INDEXER_SPEED);
+                    rightIndexerMotor.set(-Constants.INDEXER_SPEED);
+                } else {
                     System.out.print("Turning indexer off\n");
-                    indexerStartTimeSec = 0;
-                    // leftIndexerMotor.stopMotor();
-                    // rightIndexerMotor.stopMotor();
+                    leftIndexerMotor.stopMotor();
+                    rightIndexerMotor.stopMotor();
+                    currentState = StateValues.INTAKE_UPTAKE_OFF;
                 }
                 break;
             } // periodic ends
