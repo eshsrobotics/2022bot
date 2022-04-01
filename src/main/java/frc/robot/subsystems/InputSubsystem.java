@@ -77,7 +77,7 @@ public class InputSubsystem extends SubsystemBase {
      */
     public InputSubsystem() {
         controllers = new XboxController[2];
-        assignControllers(controllers);
+        assignControllersSimplistically();
 
         // Primary controller inputs.
 
@@ -148,129 +148,40 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
-     * Fills the given two-element array with {@link XboxController controller}
-     * objects that we discover on the virtual ports.
+     * Assigns roles for controllers that are plugged in or connected via Bluetooth.
      *
-     * There are two controllers, a drive controller and an auxiliary controller.
-     * The first controller in this list is the drive controller, which is
-     * programmed to complete drive related functions. The second controller is
-     * the auxiliary controller, which is programmed to complete additional
-     * tasks. If only one controller is plugged in, it will be assigned the
-     * drive controller tasks, for it is more important in competition than the
-     * auxiliary functions.
+     * The first controller this function sees in the virtual ports will be the drive controller.
+     * The second controller this function sees will be the auxiliary controller.
      *
-     * @param controllers An array of two {@link XboxController} objects, both
-     *                    of which should be null.  Our function's "return value"
-     *                    is the act of populating this array.  Remember: the
-     *                    {@link #DRIVE_CONTROLLER_INDEX first element}
-     *                    (<code>controllers[0]</code>) is the <em>drive</em>
-     *                    controller; the {@link #AUXILIARY_CONTROLLER_INDEX
-     *                    second element} is the auxiliary controller.
+     * Behavior is undefined if you have less than two controllers plugged into the system, or
+     * if one of the controllers is not an XBox controller.
      */
-    private void assignControllers(XboxController[] controllers) {
-        // There are 6 virtual ports in the Driver Station that we
-        // could connect a controller to.
+    public void assignControllersSimplistically() {
         final int NUM_VIRTUAL_PORTS = 6;
-
-        // Construct a dictionary that maps names to the index where we prefer
-        // a controller of that name to be.  That is to say, our keys are name strings,
-        // and our values are indices within controllers[].
-        var table = new HashMap<String, Integer>();
-        for (String s : Constants.DRIVE_CONTROLLER_NAME_PRIORITY) {
-            table.put(s, 0); // Controllers[0] is the driver controller.
-        }
-        for (String s : Constants.AUXILARY_CONTROLLER_NAME_PRIORITY) {
-            table.put(s, 1); // Controllers[1] is the auxiliary controller.
-        }
-
         for (int i = 0; i < NUM_VIRTUAL_PORTS; ++i) {
-            try {
-                XboxController candidateController = new XboxController(i);
-
-                if (!candidateController.isConnected()) {
-                    System.err.printf("Warning: Xbox controller disconnected virtual port %d\n", i);
-                    continue;
+            XboxController controller = new XboxController(i);
+            if (controller.isConnected()) {
+                if (controllers[0] == null) {
+                    controllers[0] = controller;
+                } else if (controllers[1] == null) {
+                    controllers[1] = controller;
                 }
-
-                // Look over all of the priority names, for both drive and auxiliary controllers,
-                // to see if the current XBox controller matches one of them.  If so, assign as
-                // appropriate.
-                table.forEach((name, index) -> {
-                    String cn = candidateController.getName();
-                    boolean driveControllerAssigned = (controllers[0] != null);
-                    boolean auxiliaryControllerAssigned = (controllers[1] != null);
-                    if (cn == name) {
-
-                        if (!driveControllerAssigned && !auxiliaryControllerAssigned) {
-
-                            // Nothing's assigned yet, so copy freely.
-                            System.out.printf("No drive, no aux: Assigning drive = %s\n", cn);
-                            controllers[index] = candidateController;
-
-                        } else if (!driveControllerAssigned && auxiliaryControllerAssigned) {
-
-                            if (index == 0) {
-                                System.out.printf("No drive, aux exists: Assigning drive = %s\n", cn);
-                                controllers[0] = candidateController;
-                            } else {
-                                // There's already an auxiliary controller assigned.  Do nothing.
-                                System.out.printf("No drive, aux exists, %s is aux: Taking no action\n", cn);
-                            }
-
-                        } else if (driveControllerAssigned && !auxiliaryControllerAssigned) {
-
-                            if (index == 0) {
-                                // DANGER: THIS IS A COMMON SCENARIO. WE HAVE MULTIPLE XBOX CONTROLLERS.
-                                // Normally, we would just skip over Xbox controllers of the preferred name,
-                                // however we are only using Xbox.
-                                //
-                                // Drive Controller = Xbox
-                                // Auxiliary Controller = ALSO Xbox
-                                //
-                                // We are making and engineering compromise by automatically assigning the second
-                                // controller as a auxiliary controller.
-                                System.out.printf("Drive exists, but not aux: Assigning %s to aux!\n", cn);
-                                controllers[1] = candidateController;
-                            } else {
-                                System.out.printf("Drive exists, no aux: Assigning %s to aux.\n", cn);
-                                controllers[1] = candidateController;
-                            }
-
-                        } else if (driveControllerAssigned && auxiliaryControllerAssigned) {
-
-                            // Both controllers are assigned.  Ignore everything else!
-                            System.out.printf("Drive exists, aux exists: Taking no action\n");
-                        }
-                    } else {
-                        // No controller that has been plugged in was recognized by name. We are in this
-                        // else loop to determine what the controller assignment will be.
-                        if (!driveControllerAssigned) {
-                            // There is no drive assigned at all, and this controller is not in the priority
-                            // list. We are going to force this controller to be a drive controller.
-                            controllers[0] = candidateController;
-                            System.out.printf("%s is not in priority lists, no drive; assigning %s to drive\n", cn, cn);
-                        } else if (!auxiliaryControllerAssigned) {
-                            controllers[1] = candidateController;
-                            System.out.printf("%s is not set in priority lists, drive does exist, no aux: assigning %s to aux\n", cn, cn);
-                        } else {
-                            // Both controllers are assigned. Ignore the controller input.
-                            System.out.printf("Drive exists, aux exists: Ignoring %s\n", cn);
-                        }
-                    }
-                 });
-
-            } catch (Exception e) {
-                // An XBox controller was not found on virtual port #i.
-                // There is nothing further to do, we are going to skip the black
-                // virtual ports and move on.
             }
-        } // end (for each virtual port)
+        }
 
-        String driverName = (controllers[0] == null ? "(null)" : controllers[0].getName());
-        String auxName = (controllers[1] == null ? "(null)" : controllers[1].getName());
-        System.out.printf("Summary:\n  Drive Controller : %s\n  Auxiliary Controller : %s\n",
-            driverName,
-            auxName);
+        if (controllers[0] == null) {
+            System.out.printf("WARNING: No controllers assigned.  Are they all asleep?");
+        } else if (controllers[0] == controllers[1]) {
+            System.out.printf("WARNING: Driver and Auxiliary controller are the same.  Is there only one controller plugged in?");
+        } else {
+            String driverName = (controllers[0] == null ? "(null)" : controllers[0].getName());
+            String auxName = (controllers[1] == null ? "(null)" : controllers[1].getName());
+            int driverId = controllers[0].hashCode();
+            int auxId = controllers[1].hashCode();
+            System.out.printf("Summary:\n  Drive Controller : %s (%d)\n  Auxiliary Controller : %s (%d)\n",
+                driverName, driverId,
+                auxName, auxId);
+        }
     }
 
     /**
@@ -346,12 +257,18 @@ public class InputSubsystem extends SubsystemBase {
         return intakeDeployToggleButton_;
     }
 
-    public Button getClimbUpBotton() {
-        return climbDownButton_;
+    /**
+     * Holding down this button causes the hook to extends upwards.
+     */
+    public Button getClimbUpButton() {
+        return climbUpButton_;
     }
 
+    /**
+     * Holding down this button causes the hook to retract downwards.
+     */
     public Button getClimbDownButton() {
-        return climbUpButton_;
+        return climbDownButton_;
     }
 
     /**

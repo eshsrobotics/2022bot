@@ -19,6 +19,7 @@ import frc.robot.subsystems.VisionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 
 /**
@@ -46,7 +47,7 @@ public class RobotContainer {
     inputSubsystem = new InputSubsystem();
     this.swerveDriveSubsystem = new SwerveDriveSubsystem(inputSubsystem, gyro);
     shooterSubsystem = new ShooterSubsystem();
-    visionSubsystem = new VisionSubsystem(swerveDriveSubsystem.getGyro());
+    visionSubsystem = new VisionSubsystem(gyro);
     intakeSubsystem = new IntakeSubsystem();
     climberSubsystem = new ClimberSubsystem();
 
@@ -78,6 +79,11 @@ public class RobotContainer {
   public void zeroPosition() {
     swerveDriveSubsystem.initialPosition();
     gyro.reset();
+  }
+
+  /** Temporary kludge. */
+  public void reassignControllers() {
+    inputSubsystem.assignControllersSimplistically();
   }
 
   /**
@@ -144,35 +150,33 @@ public class RobotContainer {
     /////////////////////////////////////////////////////////////////
 
     if (inputSubsystem.getTurntableLeftButton() != null) {
-      inputSubsystem.getTurntableLeftButton().whileHeld(() -> {
+      inputSubsystem.getTurntableLeftButton().whenHeld(new StartEndCommand(() -> {
         // Rotate the shooter turntable counterclockwise, but only if the
         // manual override is held down.
         Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
         if (manualOverrideButton != null && manualOverrideButton.get()) {
           shooterSubsystem.setManualTurnSpeed(-0.25);
         }
-      });
-      inputSubsystem.getTurntableLeftButton().whenReleased(() -> {
+      }, () -> {
         // Releasing will stop the turntable even without feedback from
         // the manual override. This adheres to the Principle of Least
         // Astonishment.
         shooterSubsystem.setManualTurnSpeed(0);
-      });
+      }));
     }
 
     if (inputSubsystem.getTurntableRightButton() != null) {
-      inputSubsystem.getTurntableRightButton().whileHeld(() -> {
+      inputSubsystem.getTurntableRightButton().whenHeld(new StartEndCommand(() -> {
         // Rotate the shooter turntable clockwise, but only if the manual
         // override is held down.
         Button manualOverrideButton = inputSubsystem.getManualOverrideButton();
         if (manualOverrideButton != null && manualOverrideButton.get()) {
           shooterSubsystem.setManualTurnSpeed(+0.25);
         }
-      });
-      inputSubsystem.getTurntableRightButton().whenReleased(() -> {
+      }, () -> {
         // See above.
         shooterSubsystem.setManualTurnSpeed(0);
-      });
+      }));
     }
 
     Button fireButton = inputSubsystem.fireButton();
@@ -188,25 +192,24 @@ public class RobotContainer {
       });
     }
 
+    // Holding down the climbDownButton retracts the climber, releasing it stops the climber.
     Button climbDownButton = inputSubsystem.getClimbDownButton();
     if (climbDownButton != null) {
-      climbDownButton.whenHeld(new InstantCommand(() -> {
-        // Note: The climber will still be climbing when this command terminates.
+      climbDownButton.whenHeld(new StartEndCommand(() -> {
         climberSubsystem.climberDown();
-      }));
-      climbDownButton.whenReleased(() -> {
+      }, () -> {
         climberSubsystem.climberStop();
-      });
+      }));
     }
 
-    Button climbUpButton = inputSubsystem.getClimbUpBotton();
+    // Holding down the climbUpButton extends the climber, releasing it stops the climber.
+    Button climbUpButton = inputSubsystem.getClimbUpButton();
     if (climbUpButton != null) {
-      climbUpButton.whenHeld(new InstantCommand(() -> {
+      climbUpButton.whenHeld(new StartEndCommand(() -> {
         climberSubsystem.climberUp();
-      }));
-      climbUpButton.whenReleased(() -> {
+      }, () -> {
         climberSubsystem.climberStop();
-      });
+      }));
     }
   }
 

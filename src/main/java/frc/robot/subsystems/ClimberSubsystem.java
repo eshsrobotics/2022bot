@@ -16,9 +16,12 @@ public class ClimberSubsystem extends SubsystemBase {
     private CANSparkMax climbMotor = null;
 
     public ClimberSubsystem() {
-        // The robot must be in break mode (blue CAN light), or else the robot
+        // The robot must be in brake mode (blue CAN light), or else the robot
         // will plummet and break.
         climbMotor = new CANSparkMax(Constants.CLIMBER_CAN_ID, MotorType.kBrushless);
+
+        // Make sure the climber does not move during the robot init period.
+        climbMotor.stopMotor();
     }
 
     public void climberUp() {

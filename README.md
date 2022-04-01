@@ -135,6 +135,7 @@ Motor distribution is as follows:
 - Shooter subsystem::
   2. Left Hood Servo Motor (Linear servo @ Servo Power Hub)
   3. Right Hood Servo Motor (Linear servo @ Servo Power Hub)
+  4. Upper Flywheel Motor (AndyMark Redline @ Spark)
 
 ### PCM and air circuit ###
 
