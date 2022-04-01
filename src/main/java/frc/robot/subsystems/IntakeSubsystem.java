@@ -1,11 +1,14 @@
 package frc.robot.subsystems;
 
+import java.sql.Driver;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorSensorV3;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -199,6 +202,7 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeSpeed = NORMAL_INTAKING_SPEED;
         updateIntakeSpeed();
 
+
         switch(currentState) {
             case START:
                 currentState = StateValues.DEPLOY;
@@ -338,14 +342,20 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     private void updateIntakeSpeed() {
 
-        boolean blueBallDetected = false;
-        boolean onBlueAlliance = (DriverStation.getAlliance() == DriverStation.Alliance.Blue);
-
-        if (onBlueAlliance != blueBallDetected) {
-            intakeSpeed = REJECTION_INTAKING_SPEED;
+        // Reverses intake if wrong ball is seen by color sensor
+        if(colorSensor.getRed() > 1500) {
+            if(DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
+                intakeSpeed = REJECTION_INTAKING_SPEED;
+            } else {
+                intakeSpeed = NORMAL_INTAKING_SPEED;
+            }
         }
-        else {
-            intakeSpeed = NORMAL_INTAKING_SPEED;
+        else if(colorSensor.getBlue() > 1500) {
+            if(DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
+                intakeSpeed = NORMAL_INTAKING_SPEED;
+            } else {
+                intakeSpeed = REJECTION_INTAKING_SPEED;
+            }
         }
     }
 
