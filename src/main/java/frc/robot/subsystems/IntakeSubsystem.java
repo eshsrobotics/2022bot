@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorSensorV3;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
@@ -122,10 +124,11 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     private DigitalInput indexerSensor = null;
 
-    private static final double NORMAL_INTAKING_SPEED = -1.0;
-    private static final double REJECTION_INTAKING_SPEED = 1.0;
-    private double intakeSpeed = NORMAL_INTAKING_SPEED;
-
+    /**
+     * left and right Indexer motor initalizations
+     */
+    private CANSparkMax leftIndexerMotor = null;
+    private CANSparkMax rightIndexerMotor = null;
 
     public IntakeSubsystem() {
         colorMatcher.addColorMatch(kBlueBall);
@@ -148,7 +151,9 @@ public class IntakeSubsystem extends SubsystemBase {
         shuffleboardTab.addNumber("IR", () -> colorSensor.getIR());
         shuffleboardTab.addBoolean("BallInIndexer", () -> !indexerSensor.get());
 
-
+        //indexer motors 
+        leftIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_LEFT_CAN_ID, MotorType.kBrushless);
+        rightIndexerMotor = new CANSparkMax(Constants.INDEXER_ROLLER_RIGHT_CAN_ID, MotorType.kBrushless);
     }
 
     /**
