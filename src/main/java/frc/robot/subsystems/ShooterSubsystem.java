@@ -1,23 +1,17 @@
 package frc.robot.subsystems;
 
-import java.security.spec.EncodedKeySpec;
-
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.ControlType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.Constants;
 
 /**
@@ -43,10 +37,16 @@ public class ShooterSubsystem extends SubsystemBase {
     private double currentHoodPosition = 0;
 
     /**
-     * The shooter turntable's current speed.  This is either equal to the last speed
-     * set by {@link #turn(double)} or 0.0 (if we hit the limit switch.)
+     * The portion of the shooter turntable speed that is governed by human
+     * input.
      */
-    private double turntableSpeed = 0;
+    private double turntableManualSpeed = 0;
+
+    /**
+     * The portion of the shooter turntable speed that is governed by the
+     * vision subsystem.
+     */
+    private double turntableAutomaticSpeed = 0;
 
     /**
      * What directions should the turntable be allowed to rotate?
@@ -93,13 +93,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private NetworkTableEntry flywheelSpeedEntry = null;
 
-    private enum turntableStates {
-        FREE_TO_MOVE_STATE,
-        RESTRICT_MOVE_UNTIL_RELEASED
-    }
-
-    private turntableStates currentState = turntableStates.FREE_TO_MOVE_STATE;
-
     /**
      * Initializes the hooded shooter while simultaneously pulling down
      * the hooded shooter to it"s start position at zero.
@@ -132,7 +125,8 @@ public class ShooterSubsystem extends SubsystemBase {
         turntableMotor = new CANSparkMax(Constants.SHOOTER_TURNTABLE_CAN_ID, MotorType.kBrushless);
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Shooter");
-        shuffleboardTab.addNumber("turntableSpeed", () -> turntableSpeed);
+        shuffleboardTab.addNumber("turntableManualSpeed", () -> turntableManualSpeed);
+        shuffleboardTab.addNumber("turntableAutomaticSpeed", () -> turntableAutomaticSpeed);
         shuffleboardTab.addNumber("lastNonzeroTurntableSpeed", () -> lastNonzeroTurntableSpeed);
         shuffleboardTab.addNumber("turntablePermittedDirection", () -> turntablePermittedDirection);
         shuffleboardTab.addNumber("currentHoodPosition", () -> currentHoodPosition);
@@ -216,15 +210,36 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     /**
-     * Starts turning the shooter turntable at the given speed.
+     * Sets the part of the shooter turntable's speed that is governed by human
+     * input.
      *
-     * @param speed How quickly to turn.  The range is -1.0 (full speed counterclockwise)
-     *              to 0.0 (stopped) to 1.0 (full speed clockwise.)
+     * It is important that we distinguish this from the turntable speed
+     * governed by the vision subsystem; the manual speed is allowed to ignore
+     * the limit switch, but the automatic speed is not.
+     *
+     * @param speed The new speed of the turntable.  If this is nonzero, we will
+     *              ignore the {@link #setVisionTurnSpeed(double) vision
+     *              turntable speed}.
      */
-    public void turn(double speed) {
-        turntableSpeed = speed;
-        if (Math.abs(turntableSpeed) > EPSILON) {
-            lastNonzeroTurntableSpeed = turntableSpeed;
+    public void setManualTurnSpeed(double speed) {
+        turntableManualSpeed = MathUtil.clamp(speed, -1.0, 1.0);
+    }
+
+    /**
+     * Sets the portion of the shooter turntable's speed which is governed by
+     * the automatic adjustments of the vision subsystem.
+     *
+     * Unlike the {@link #setManualTurnSpeed(double) manual speed}, this speed
+     * is subject to directional constraints from the
+     * {@link #turntableLimitSwitch}.
+     */
+    public void setVisionTurnSpeed(double speed) {
+        turntableAutomaticSpeed = MathUtil.clamp(speed, -1.0, 1.0);
+
+        if (turntableAutomaticSpeed != 0 && !turntableLimitSwitch.get()) {
+            // Remember the direction that the turntable was turning in last
+            // while it was free to move.
+            lastNonzeroTurntableSpeed = Math.signum(turntableAutomaticSpeed);
         }
     }
 
@@ -233,40 +248,35 @@ public class ShooterSubsystem extends SubsystemBase {
      * user's desired direction...if and only if we are permitted to.
      */
     private void maybeRotateTurntable() {
-        switch (currentState) {
-            case FREE_TO_MOVE_STATE:
-                // If the limit switch is pressed when the robot is not moving, meaning
-                // that the robot was turned on when the switch was pressed, there is no
-                // way to know what direction to move based on previous action.
-                // We are contemplating throwing an exeption and forcing the robot to quit
-                // because it is dangerous to guess which direction the robot can turn
-                // without messing up, damaging, or harming robot hardware.
-                if (turntableLimitSwitch.get()) {
-                    // Limit witch is hit; ban furter motion in that direction of the
-                    // travel.
-                    turntablePermittedDirection = (int) -Math.signum(turntableSpeed);
-                    currentState = turntableStates.RESTRICT_MOVE_UNTIL_RELEASED;
-                }
-                break;
-            case RESTRICT_MOVE_UNTIL_RELEASED:
-                if (!turntableLimitSwitch.get()) {
-                    // When the limit switch is not being pressed, meaning it has been
-                    // released, the turntable moves back to the FREE_TO_MOVE_STATE.
-                    currentState = turntableStates.FREE_TO_MOVE_STATE;
-                } else {
-                    if ((turntablePermittedDirection < 0 && turntableSpeed > 0) ||
-                            (turntablePermittedDirection > 0 && turntableSpeed < 0)) {
-                        // Disallow rotation of the turntable in illegal directions.
-                        turntableSpeed = 0;
-                    }
-                }
-                break;
-        }
-        if (Math.abs(turntableSpeed) < EPSILON) {
-            turntableMotor.stopMotor();
+        double finalTurntableSpeed = 0;
+
+        if (turntableManualSpeed != 0) {
+
+            // Manually adjusting the turntable overrides vision control *and*
+            // ignores the limit switch.
+            finalTurntableSpeed = turntableManualSpeed;
+
         } else {
-            turntableMotor.set(turntableSpeed);
+
+            finalTurntableSpeed = turntableAutomaticSpeed;
+
+            if (turntableLimitSwitch.get()) {
+                // Limit switch is hit; ban further motion in that direction of the
+                // travel.
+                double turntablePermittedDirection = -Math.signum(lastNonzeroTurntableSpeed);
+                if ((turntablePermittedDirection < 0 && turntableAutomaticSpeed > 0) ||
+                    (turntablePermittedDirection > 0 && turntableAutomaticSpeed < 0)) {
+                    // Disallow (automatic) rotation of the turntable in illegal
+                    // directions.
+                    finalTurntableSpeed = 0;
+                }
+            }
         }
 
+        if (Math.abs(finalTurntableSpeed) < EPSILON) {
+            turntableMotor.stopMotor();
+        } else {
+            turntableMotor.set(finalTurntableSpeed);
+        }
     }
 }

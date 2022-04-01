@@ -131,7 +131,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 PIDController pidController = new PIDController(P, I, D);
 
                 // The pidController is supposed to minimize the deviation (error) between
-                // an aboslute angle, in degrees, and a setpoint coming from the human
+                // an absolute angle, in degrees, and a setpoint coming from the human
                 // driver's controller, also in degrees.  To minimize this angle, we need
                 // to be aware that the range "wraps around" between 0 and 360 degrees.
                 pidController.enableContinuousInput(-180, 180);
