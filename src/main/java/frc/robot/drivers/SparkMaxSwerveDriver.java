@@ -61,7 +61,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     //
     // It took a long time to come up with these values.  Are you a bad enough dude
     // to modify them?
-    private final double P = 0.1;
+    private final double P = 1.0;
     private final double I = 1.0;
     private final double D = 0.01;
 
