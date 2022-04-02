@@ -223,4 +223,12 @@ public class RobotContainer {
     // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
+
+  /**
+   * Causes our internal {@link SwerveDriveSubsystem} to perfrom an autonomous operation for
+   * a predefined nmber of seconds. 
+   */
+  public void startAutonomousRun() {
+    swerveDriveSubsystem.startAutonomousRun();
+  }
 }

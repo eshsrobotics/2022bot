@@ -1,10 +1,12 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -23,6 +25,16 @@ import frc.robot.drivers.SparkMaxSwerveDriver;
  * Put succinctly, this class makes the robot go vroom.
  */
 public class SwerveDriveSubsystem extends SubsystemBase {
+
+    /**
+     * Autonomous routine run time that allows us to taxi from the tarmak. 
+     */
+    private static final double AUTONOMOUS_RUN_DURATION_SEC = 3.0;
+
+    /**
+     * Measure the start time when we start autonomous.
+     */
+    private double autonomousStartTimeSeconds = 0.0;
 
     /**
      * Translates human input into three numbers: rotate, left/right, and
@@ -136,6 +148,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             driver.setGoalStates(driver.reset(angleFromShuffleboard));
             lastAngleFromShuffleboard = angleFromShuffleboard;
 
+        } else if (Timer.getFPGATimestamp() - autonomousStartTimeSeconds < AUTONOMOUS_RUN_DURATION_SEC) {
+
+            // We are in the middle of an autonomous run.  The only thing we have to do in here is
+            // not stop!
+            
         } else {
 
             // We are not doing a debug change or autonomous, so the motors
@@ -157,5 +174,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      */
     public void initialPosition() {
         driver.setGoalStates(driver.reset(0));
+    }
+
+    /**
+     * Starts the autonomous routine for a set amount of time.
+     */
+    public void startAutonomousRun() {
+        autonomousStartTimeSeconds = Timer.getFPGATimestamp();
+        SwerveModuleState[] states = drivingScheme.convert(-0.5, 0, 0);
+        driver.setGoalStates(states);
     }
 }
