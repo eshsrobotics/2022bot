@@ -39,7 +39,7 @@ public class RobotContainer {
   private IntakeSubsystem intakeSubsystem = null;
   private ClimberSubsystem climberSubsystem = null;
 
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+  private Command m_autoCommand = null;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -69,6 +69,13 @@ public class RobotContainer {
       // TODO: Add code here to automatically adjust the hood and the flywheel speed
       // depending on what the vision solution's distance is.
     }, visionSubsystem, shooterSubsystem));
+
+    // During aitonomous, we want to perform a simple straight run for a preset number of seconds.
+    // The swerveDriveSubsystem already "knows" how to do that, so all our official autonomous command
+    // has to do for now is start the process.
+    m_autoCommand = new InstantCommand(() -> {
+      swerveDriveSubsystem.startAutonomousRun();
+    }, swerveDriveSubsystem);
   }
 
   /**
@@ -220,15 +227,9 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
+    
+  // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
 
-  /**
-   * Causes our internal {@link SwerveDriveSubsystem} to perfrom an autonomous operation for
-   * a predefined nmber of seconds. 
-   */
-  public void startAutonomousRun() {
-    swerveDriveSubsystem.startAutonomousRun();
-  }
 }
