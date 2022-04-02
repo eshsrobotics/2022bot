@@ -82,6 +82,8 @@ public class Robot extends TimedRobot {
     m_robotContainer.zeroPosition();
 
     m_robotContainer.reassignControllers();
+
+    m_robotContainer.setDefaultShootingTrajectory();
   }
 
   /** This function is called periodically during operator control. */
