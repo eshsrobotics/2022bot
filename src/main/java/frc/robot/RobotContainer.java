@@ -40,7 +40,7 @@ public class RobotContainer {
   private IntakeSubsystem intakeSubsystem = null;
   private ClimberSubsystem climberSubsystem = null;
 
-  private Command defaultShootingTrajectoryCommand = null; 
+  private Command defaultShootingTrajectoryCommand = null;
   private Command m_autoCommand = null;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -75,10 +75,10 @@ public class RobotContainer {
     defaultShootingTrajectoryCommand = new RunCommand(() -> {
 
       // Using a placeholder value for now untill an accurate value is found
-      shooterSubsystem.setFlyWheelSpeed(.3);
+      shooterSubsystem.setFlyWheelSpeed(-0.3);
 
       // Using a placeholder value for now untill an accurate value is found
-      shooterSubsystem.setHoodAngle(.3);
+      shooterSubsystem.setHoodAngle(0.3);
 
     }, shooterSubsystem);
 
@@ -233,6 +233,15 @@ public class RobotContainer {
         climberSubsystem.climberStop();
       }));
     }
+
+    // Pressing this button will reset the gyro. To have field oriented swerve correctly
+    // implemented, the robot must be facing with the intake away from the driver.
+    Button gyroResetButton = inputSubsystem.getGyroResetButton();
+    if (gyroResetButton != null) {
+      gyroResetButton.whenPressed(() -> {
+        zeroPosition();
+      }, swerveDriveSubsystem);
+    }
   }
 
 
@@ -242,14 +251,14 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    
+
   // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
-  
+
   /**
    * This command runs the DefaultTrajectory command that allows us to shoot with
-   * the same velocity and angle at the hanger line 
+   * the same velocity and angle at the hanger line
    s*/
   public void setDefaultShootingTrajectory() {
     defaultShootingTrajectoryCommand.schedule();

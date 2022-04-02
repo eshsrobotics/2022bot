@@ -27,9 +27,9 @@ import frc.robot.drivers.SparkMaxSwerveDriver;
 public class SwerveDriveSubsystem extends SubsystemBase {
 
     /**
-     * Autonomous routine run time that allows us to taxi from the tarmak. 
+     * Autonomous routine run time that allows us to taxi from the tarmak.
      */
-    private static final double AUTONOMOUS_RUN_DURATION_SEC = 3.0;
+    private static final double AUTONOMOUS_RUN_DURATION_SEC = 1.5;
 
     /**
      * Measure the start time when we start autonomous.
@@ -152,7 +152,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
             // We are in the middle of an autonomous run.  The only thing we have to do in here is
             // not stop!
-            
+
         } else {
 
             // We are not doing a debug change or autonomous, so the motors
