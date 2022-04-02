@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -40,6 +41,7 @@ public class RobotContainer {
   private ClimberSubsystem climberSubsystem = null;
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+  private Command defaultShootingTrajectoryCommand = null; 
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -69,7 +71,21 @@ public class RobotContainer {
       // TODO: Add code here to automatically adjust the hood and the flywheel speed
       // depending on what the vision solution's distance is.
     }, visionSubsystem, shooterSubsystem));
+
+    defaultShootingTrajectoryCommand = new RunCommand(() -> {
+
+      // Using a placeholder value for now untill an accurate value is found
+      shooterSubsystem.setFlyWheelSpeed(.3);
+
+      // Using a placeholder value for now untill an accurate value is found
+      shooterSubsystem.setHoodAngle(.3);
+
+    }, shooterSubsystem);
+
+
   }
+
+
 
   /**
    * The default position of the swerve modules is facing straight forward, with the gear side of the modules
@@ -230,5 +246,13 @@ public class RobotContainer {
    */
   public void startAutonomousRun() {
     swerveDriveSubsystem.startAutonomousRun();
+  }
+  
+  /**
+   * This command runs the DefaultTrajectory command that allows us to shoot with
+   * the same velocity and angle at the hanger line 
+   s*/
+  public void setDefaultShootingTrajectory() {
+    defaultShootingTrajectoryCommand.schedule();
   }
 }

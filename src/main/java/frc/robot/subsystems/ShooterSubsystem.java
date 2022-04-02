@@ -161,6 +161,11 @@ public class ShooterSubsystem extends SubsystemBase {
         flyWheelSpeedRight = -MathUtil.clamp(speed, -1.0, 1.0);
     }
 
+    /**
+     * Set the absolute hood angle, like a servo, zero is the bottom of where the hood could go and 1 one is the top of where the hood could go
+     * 
+     * @param angle
+     */
     public void setHoodAngle(double angle) {
         currentHoodPosition = angle;
     }
