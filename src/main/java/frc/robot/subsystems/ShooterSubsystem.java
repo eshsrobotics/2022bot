@@ -236,6 +236,7 @@ public class ShooterSubsystem extends SubsystemBase {
         currentHoodIncrement = 0;
         System.out.printf("CurrentPosition = %.1f.  Increment set to %.1f.", currentHoodPosition, currentHoodIncrement);
     }
+    
 
     /**
      * Sets the part of the shooter turntable's speed that is governed by human
