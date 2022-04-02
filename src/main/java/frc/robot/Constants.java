@@ -227,7 +227,7 @@ public final class Constants {
         /**
          * When the shooter hits this limit switch, it must abandon its current
          * direction of travel and only allow travel in the opposite direction....until,
-         * that is, the limit switch is it again from the other side.
+         * that is, the limit switch is hit again from the other side.
          */
         public static final int SHOOTER_TURN_TABLE_LIMIT_SWITCH_DIO_PORT = 4;
 
