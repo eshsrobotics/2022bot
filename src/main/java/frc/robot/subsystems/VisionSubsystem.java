@@ -46,8 +46,8 @@ public class VisionSubsystem extends SubsystemBase {
 
     // Tweak the pid of the turret to make it run more smoothly.
     private static final double P = 1.0;
-    private static final double I = 1.0;
-    private static final double D = 0.01;
+    private static final double I = 0.07;
+    private static final double D = 0.03;
 
     /**
      * Initializes this object and its PID controller.
