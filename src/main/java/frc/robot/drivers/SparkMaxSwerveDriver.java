@@ -8,8 +8,10 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycle;
@@ -44,7 +46,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * Rotates the pivot motors to a given set point using PID.
      */
-    private List<PIDController> pidControllers;
+    private List<ProfiledPIDController> pidControllers;
 
     /**
      * Converts inputs from PWM into dutyCycles between zero and one.
@@ -64,16 +66,16 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     /**
      * If P is equal to 1/N, then when the measurement value is N degrees
-     * away from the setpoint, we will apply 100% power to the pivot motor. 
-     * 
+     * away from the setpoint, we will apply 100% power to the pivot motor.
+     *
      * For now, a value between 10 and 20 degrees will probably due.
      */
-    private final double P = 1.0 / 5;
+    private final double P = 2.0;
 
-    /** 
+    /**
      * A good value for I is around 10% of P.
-     */ 
-    private final double I =0;
+     */
+    private final double I = 0;
 
     /**
      * D dampens the PID curve.  "D causes all kinds of problems."
@@ -138,12 +140,13 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             e.printStackTrace();
         }
 
-        this.pidControllers = new ArrayList<PIDController>();
+        this.pidControllers = new ArrayList<>();
         int i = 0;
         for (CANSparkMax pivotMotor : pivotMotors) {
             try {
                 System.out.printf("about to get pidcontroller #%d\n", i++);
-                PIDController pidController = new PIDController(P, I, D);
+                ProfiledPIDController pidController = new ProfiledPIDController(P, I, D,
+                    new TrapezoidProfile.Constraints(360  * 5, 360 * 8));
 
                 // The pidController is supposed to minimize the deviation (error) between
                 // an absolute angle, in degrees, and a setpoint coming from the human
@@ -221,7 +224,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * Returns {@link SwerveModuleState SwerveModuleStates} where all four pivot wheels
      * are aligned at the given absolute angle, regardless of where the the wheels were
      * when the robot was turned on.
-     * 
+     *
      * All four modulus will have a speed of 0.
      *
      * @param absoluteAngleDegrees The desired angle for all the swerve modules.
@@ -249,13 +252,20 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
         // Translates shopping cart speeds and angles into motion.
         for (int i = 0; i < swerveModuleStates.length; i++)  {
+            // The absolute position of the swerve wheels.  We need the displacement offsets
+            // in order to force the wheels into the angles we actually want.
+            double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
+            double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
+            currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
+            entries.get(i + 4).setDouble(currentAbsoluteAngle);
 
             // Set the speed for the current drive motor.
             // ------------------------------------------
 
             // Translate speed from units of meters per second into a unitless
             // value between -1.0 and 1.0.
-            double speed = swerveModuleStates[i].speedMetersPerSecond /
+            SwerveModuleState state = swerveModuleStates[i];
+            double speed = state.speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
             speedMotors.get(i).set(speed);
             entries.get(i + 12).setDouble(speedMotors.get(i).get());
@@ -265,15 +275,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
             // This is the angle coming from the shopping cart angles in the swerveModuleStates[]
             // argument.  The range is always [-180, 180].
-            double rotations = swerveModuleStates[i].angle.getDegrees() + 180.0;
+            double rotations = state.angle.getDegrees() + 180.0;
             entries.get(i + 8).setDouble(rotations);
 
-            // The absolute position of the swerve wheels.  We need the displacement offsets
-            // in order to force the wheels into the angles we actually want.
-            double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
-            double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
-            currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
-            entries.get(i + 4).setDouble(currentAbsoluteAngle);
+
 
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
