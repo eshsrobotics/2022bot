@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -39,7 +40,8 @@ public class RobotContainer {
   private IntakeSubsystem intakeSubsystem = null;
   private ClimberSubsystem climberSubsystem = null;
 
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+  private Command defaultShootingTrajectoryCommand = null;
+  private Command m_autoCommand = null;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -69,7 +71,27 @@ public class RobotContainer {
       // TODO: Add code here to automatically adjust the hood and the flywheel speed
       // depending on what the vision solution's distance is.
     }, visionSubsystem, shooterSubsystem));
+
+    defaultShootingTrajectoryCommand = new RunCommand(() -> {
+
+      // Using a placeholder value for now untill an accurate value is found
+      shooterSubsystem.setFlyWheelSpeed(-0.3);
+
+      // Using a placeholder value for now untill an accurate value is found
+      shooterSubsystem.setHoodAngle(0.3);
+
+    }, shooterSubsystem);
+
+
+    // During aitonomous, we want to perform a simple straight run for a preset number of seconds.
+    // The swerveDriveSubsystem already "knows" how to do that, so all our official autonomous command
+    // has to do for now is start the process.
+    m_autoCommand = new InstantCommand(() -> {
+      swerveDriveSubsystem.startAutonomousRun();
+    }, swerveDriveSubsystem);
   }
+
+
 
   /**
    * The default position of the swerve modules is facing straight forward, with the gear side of the modules
@@ -211,6 +233,15 @@ public class RobotContainer {
         climberSubsystem.climberStop();
       }));
     }
+
+    // Pressing this button will reset the gyro. To have field oriented swerve correctly
+    // implemented, the robot must be facing with the intake away from the driver.
+    Button gyroResetButton = inputSubsystem.getGyroResetButton();
+    if (gyroResetButton != null) {
+      gyroResetButton.whenPressed(() -> {
+        zeroPosition();
+      }, swerveDriveSubsystem);
+    }
   }
 
 
@@ -220,7 +251,16 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
+
+  // An ExampleCommand will run in autonomous
     return m_autoCommand;
+  }
+
+  /**
+   * This command runs the DefaultTrajectory command that allows us to shoot with
+   * the same velocity and angle at the hanger line
+   s*/
+  public void setDefaultShootingTrajectory() {
+    defaultShootingTrajectoryCommand.schedule();
   }
 }

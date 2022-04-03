@@ -61,9 +61,24 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     //
     // It took a long time to come up with these values.  Are you a bad enough dude
     // to modify them?
-    private final double P = 1.0;
-    private final double I = 1.0;
-    private final double D = 0.01;
+
+    /**
+     * If P is equal to 1/N, then when the measurement value is N degrees
+     * away from the setpoint, we will apply 100% power to the pivot motor. 
+     * 
+     * For now, a value between 10 and 20 degrees will probably due.
+     */
+    private final double P = 1.0 / 10.0; 
+
+    /** 
+     * A good value for I is around 10% of P.
+     */ 
+    private final double I = P * 0.1;
+
+    /**
+     * D dampens the PID curve.  "D causes all kinds of problems."
+     */
+    private final double D = 0.0;
 
     /**
      * Initializes all of the {@link CANSparkMax} motor and PID controllers.
@@ -141,6 +156,22 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 pidController.setI(I);
                 pidController.setD(D);
 
+                // Sets our iZone value.  This is extremely important, and warrants an explanation.
+                //
+                // - The Integral term (I) is used to get us exactly to our setpoint when the
+                //   measurement is close enough.
+                // - We use an integral value of 1.0, which is considered fairly high by field techs.
+                // - High I values are subject to a phenemonen known as 'integral windup.'  Imagine having
+                //   a setpoint of 50 degrees and a measured value of 49.95.  You're close!  You turn, and you
+                //   overshoot.  You need to turn back.  Every time this happens, error accumulates.
+                //   * On a smooth surface, or when the robot is suspended in the air with no friction, we easily
+                //     resolve by reaching the setpoint quickly.
+                //   * On higher-friction surfaces, it takes longer to get to the setpoint, and the error accumulates
+                //     more quickly.  For us, it accumulated too quickly, leading to integral windup.
+                // - The setIntegratorRange() function sets an integral zone ("iZone") so that when the integral
+                //   value suggests a correction that is too large, we say "no thank you" and ignore it.
+                pidController.setIntegratorRange(-2.0, 2.0);
+
 
                 // Integrated encoder is the feedback device the controller uses by default.
                 // pidController.setFeedbackDevice(pivotMotor.getEncoder());
@@ -190,6 +221,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * Returns {@link SwerveModuleState SwerveModuleStates} where all four pivot wheels
      * are aligned at the given absolute angle, regardless of where the the wheels were
      * when the robot was turned on.
+     * 
+     * All four modulus will have a speed of 0.
      *
      * @param absoluteAngleDegrees The desired angle for all the swerve modules.
      *                             An angle of 0 points all modules forward, and is the
@@ -198,15 +231,15 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * @return The states.
      */
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
-        double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
+        double absoluteAngleRadians = 0 * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians))
         };
     }
