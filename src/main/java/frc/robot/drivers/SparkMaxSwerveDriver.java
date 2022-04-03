@@ -80,7 +80,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     /**
      * D dampens the PID curve.  "D causes all kinds of problems."
      */
-    private final double D = 0.001;
+    private final double D = 0.0;
 
     /**
      * Initializes all of the {@link CANSparkMax} motor and PID controllers.
