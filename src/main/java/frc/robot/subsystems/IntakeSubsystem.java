@@ -212,6 +212,7 @@ public class IntakeSubsystem extends SubsystemBase {
                     // We have just entered the DEPLOY state.
                     intakeMotor.stopMotor();
                     uptakeMotor.stopMotor();
+                    deployIntake(false);
 
                     if (IntakeSubsystem.STATE_AFTER_DEPLOY == StateValues.INTAKE_UPTAKE_OFF) {
                         // if we don't want to deploy our intake, just immediately go to intake uptake off state.

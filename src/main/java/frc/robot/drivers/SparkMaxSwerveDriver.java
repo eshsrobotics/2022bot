@@ -156,6 +156,22 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 pidController.setI(I);
                 pidController.setD(D);
 
+                // Sets our iZone value.  This is extremely important, and warrants an explanation.
+                //
+                // - The Integral term (I) is used to get us exactly to our setpoint when the
+                //   measurement is close enough.
+                // - We use an integral value of 1.0, which is considered fairly high by field techs.
+                // - High I values are subject to a phenemonen known as 'integral windup.'  Imagine having
+                //   a setpoint of 50 degrees and a measured value of 49.95.  You're close!  You turn, and you
+                //   overshoot.  You need to turn back.  Every time this happens, error accumulates.
+                //   * On a smooth surface, or when the robot is suspended in the air with no friction, we easily
+                //     resolve by reaching the setpoint quickly.
+                //   * On higher-friction surfaces, it takes longer to get to the setpoint, and the error accumulates
+                //     more quickly.  For us, it accumulated too quickly, leading to integral windup.
+                // - The setIntegratorRange() function sets an integral zone ("iZone") so that when the integral
+                //   value suggests a correction that is too large, we say "no thank you" and ignore it.
+                pidController.setIntegratorRange(-2.0, 2.0);
+
 
                 // Integrated encoder is the feedback device the controller uses by default.
                 // pidController.setFeedbackDevice(pivotMotor.getEncoder());

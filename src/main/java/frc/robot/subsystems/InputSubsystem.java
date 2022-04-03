@@ -71,6 +71,7 @@ public class InputSubsystem extends SubsystemBase {
     private Button climbDownButton_ = null;
     private Button rumbleDriveButton_ = null;
     private Button readShuffleboardButton_ = null;
+    private Button resetGyroButton_ = null;
 
     /**
      * Initializes this object and determines which input methods are usable.
@@ -139,6 +140,9 @@ public class InputSubsystem extends SubsystemBase {
         });
         readShuffleboardButton_ = new Button(() ->{
             return controllers[AUXILIARY_CONTROLLER_INDEX].getYButton();
+        });
+        resetGyroButton_ = new Button(() -> {
+            return controllers[DRIVE_CONTROLLER_INDEX].getYButton();
         });
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("InputSubsystem");
@@ -278,6 +282,15 @@ public class InputSubsystem extends SubsystemBase {
      */
     public Button getManualOverrideButton() {
         return manualOverrideButton_;
+    }
+
+    /**
+     * When the Y Button is pressed on the drive controller, the gyro will reset.
+     * It is important to note that the driver must orient the robot so the intake
+     * is facing away from them in order for this callibration to be correct.
+     */
+    public Button getGyroResetButton() {
+        return resetGyroButton_;
     }
 
     /**
