@@ -72,6 +72,8 @@ public class InputSubsystem extends SubsystemBase {
     private Button rumbleDriveButton_ = null;
     private Button readShuffleboardButton_ = null;
     private Button resetGyroButton_ = null;
+    private Button shooterFasterButton_ = null;
+    private Button shooterSlowerButton_ = null;
 
     /**
      * Initializes this object and determines which input methods are usable.
@@ -117,11 +119,15 @@ public class InputSubsystem extends SubsystemBase {
         });
         hoodUpButton_ = new Button(() -> {
             int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
-            return (dpadAngle == 0);
+            return (dpadAngle >= 315 || dpadAngle <= 45);
         });
         hoodDownButton_ = new Button(()->{
             int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
-            return (dpadAngle > 135 && dpadAngle < 225);
+            return (dpadAngle >= 135 && dpadAngle <= 225);
+        });
+        shooterFasterButton_ = new Button(() -> {
+            int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
+            return true; // TODO: implement properly!
         });
         turntableLeftButton_ = new Button(() -> {
             return (controllers[AUXILIARY_CONTROLLER_INDEX].getLeftBumper());
