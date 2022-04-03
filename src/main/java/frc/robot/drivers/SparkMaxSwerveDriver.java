@@ -68,17 +68,17 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * 
      * For now, a value between 10 and 20 degrees will probably due.
      */
-    private final double P = 1.0 / 10.0; 
+    private final double P = 1.0 / 5;
 
     /** 
      * A good value for I is around 10% of P.
      */ 
-    private final double I = P * 0.1;
+    private final double I =0;
 
     /**
      * D dampens the PID curve.  "D causes all kinds of problems."
      */
-    private final double D = 0.0;
+    private final double D = 0.001;
 
     /**
      * Initializes all of the {@link CANSparkMax} motor and PID controllers.
