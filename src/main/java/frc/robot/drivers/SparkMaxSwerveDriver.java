@@ -61,9 +61,24 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     //
     // It took a long time to come up with these values.  Are you a bad enough dude
     // to modify them?
-    private final double P = 1.0;
-    private final double I = 1.0;
-    private final double D = 0.01;
+
+    /**
+     * If P is equal to 1/N, then when the measurement value is N degrees
+     * away from the setpoint, we will apply 100% power to the pivot motor. 
+     * 
+     * For now, a value between 10 and 20 degrees will probably due.
+     */
+    private final double P = 1.0 / 10.0; 
+
+    /** 
+     * A good value for I is around 10% of P.
+     */ 
+    private final double I = P * 0.1;
+
+    /**
+     * D dampens the PID curve.  "D causes all kinds of problems."
+     */
+    private final double D = 0.0;
 
     /**
      * Initializes all of the {@link CANSparkMax} motor and PID controllers.
@@ -190,6 +205,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * Returns {@link SwerveModuleState SwerveModuleStates} where all four pivot wheels
      * are aligned at the given absolute angle, regardless of where the the wheels were
      * when the robot was turned on.
+     * 
+     * All four modulus will have a speed of 0.
      *
      * @param absoluteAngleDegrees The desired angle for all the swerve modules.
      *                             An angle of 0 points all modules forward, and is the
@@ -198,15 +215,15 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * @return The states.
      */
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
-        double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
+        double absoluteAngleRadians = 0 * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(absoluteAngleDegrees,
+            new SwerveModuleState(0,
                                   new Rotation2d(absoluteAngleRadians))
         };
     }
