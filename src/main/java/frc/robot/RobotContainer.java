@@ -78,7 +78,7 @@ public class RobotContainer {
       shooterSubsystem.setFlyWheelSpeed(-0.3);
 
       // Using a placeholder value for now untill an accurate value is found
-      shooterSubsystem.setHoodAngle(0.3);
+      shooterSubsystem.setHoodAngle(0.9);
 
     }, shooterSubsystem);
 
@@ -120,22 +120,16 @@ public class RobotContainer {
     // for now.
     Button hoodUpButton = inputSubsystem.hoodUpButton();
     if (hoodUpButton != null) {
-      hoodUpButton.whenHeld(new InstantCommand(() -> {
-        shooterSubsystem.raiseHood();
-      }));
-      hoodUpButton.whenReleased(new InstantCommand(() -> {
-        shooterSubsystem.stopHood();
-      }));
+      hoodUpButton.whenHeld(new StartEndCommand(() -> shooterSubsystem.raiseHood(),
+                                                () -> shooterSubsystem.stopHood(),
+                                                shooterSubsystem));
     }
 
     Button hoodDownButton = inputSubsystem.hoodDownButton();
     if (hoodDownButton != null) {
-      hoodDownButton.whenHeld(new InstantCommand(() -> {
-        shooterSubsystem.lowerHood();
-      }));
-      hoodDownButton.whenReleased(new InstantCommand(() -> {
-        shooterSubsystem.stopHood();
-      }));
+      hoodDownButton.whenHeld(new StartEndCommand(() -> shooterSubsystem.lowerHood(),
+                                                  () -> shooterSubsystem.stopHood(),
+                                                  shooterSubsystem));
     }
 
     // Pressing the "Y" button on the auxiliary controller will read the

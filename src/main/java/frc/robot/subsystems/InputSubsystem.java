@@ -118,16 +118,24 @@ public class InputSubsystem extends SubsystemBase {
             return controllers[AUXILIARY_CONTROLLER_INDEX].getRightTriggerAxis() > 0;
         });
         hoodUpButton_ = new Button(() -> {
+            // Pressing UP on the D-Pad.
             int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
             return (dpadAngle >= 315 || dpadAngle <= 45);
         });
         hoodDownButton_ = new Button(()->{
+            // Pressing DOWN on the D-Pad.
             int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
             return (dpadAngle >= 135 && dpadAngle <= 225);
         });
         shooterFasterButton_ = new Button(() -> {
+            // Pressing RIGHT on the D-Pad.
             int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
-            return true; // TODO: implement properly!
+            return (dpadAngle >= 45 && dpadAngle <= 135);
+        });
+        shooterSlowerButton_ = new Button(() -> {
+            // Pressing LEFT on the D-Pad.
+            int dpadAngle = controllers[AUXILIARY_CONTROLLER_INDEX].getPOV();
+            return (dpadAngle >= 225 && dpadAngle <= 315);
         });
         turntableLeftButton_ = new Button(() -> {
             return (controllers[AUXILIARY_CONTROLLER_INDEX].getLeftBumper());
