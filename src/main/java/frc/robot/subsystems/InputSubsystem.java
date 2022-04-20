@@ -189,9 +189,10 @@ public class InputSubsystem extends SubsystemBase {
 
         if (controllers[0] == null) {
             System.out.printf("WARNING: No controllers assigned.  Are they all asleep?");
-        } else if (controllers[0] == controllers[1]) {
-            System.out.printf("WARNING: Driver and Auxiliary controller are the same.  Is there only one controller plugged in?");
+        // } else if (controllers[0] == controllers[1]) {
+            //System.out.printf("WARNING: Driver and Auxiliary controller are the same.  Is there only one controller plugged in?");
         } else {
+            controllers[1] = controllers[0];
             String driverName = (controllers[0] == null ? "(null)" : controllers[0].getName());
             String auxName = (controllers[1] == null ? "(null)" : controllers[1].getName());
             int driverId = controllers[0].hashCode();

@@ -1,7 +1,7 @@
 # 2022bot
 Source code for the ESHS Robotics 2022 FRC Rapid React competition robot.
 
-The robot's tentative name is **TATR** (The Articulated Turret Robot.)
+The robot's tentative name is **TATR** (Traversal Articulated Turret Robot.)
 
 This file contains [motor and port assignments](#motor-and-port-assignments), the robot's [control scheme](#control-scheme), and technical discussion about its various [subsystems](#subsystems).
 
