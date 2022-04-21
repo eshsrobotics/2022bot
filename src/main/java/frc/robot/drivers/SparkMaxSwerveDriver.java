@@ -193,11 +193,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 //   value suggests a correction that is too large, we say "no thank you" and ignore it.
                 pidController.setIntegratorRange(-2.0, 2.0);
 
-
-                // Integrated encoder is the feedback device the controller uses by default.
-                // pidController.setFeedbackDevice(pivotMotor.getEncoder());
-
                 pidControllers.add(pidController);
+
             } catch (Exception e) {
                 System.out.printf("Could not get pid controller: %s\n", e.getMessage());
                 e.printStackTrace();
@@ -216,7 +213,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     /**
      * Stores a new direction for the swerve modules to go in.
-     * You can pass these values into drive() using getGoalStates().
+     *
+     * <p>You can pass
+     * these values into {@link #drive(SwerveModuleState[]) drive()} using
+     * {@link #getGoalStates()}.</p>
      *
      * @param newGoalStates New shopping cart angles and speeds that you want.
      */
@@ -225,8 +225,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     }
 
     /**
-     * Returns the goal states that were previously set by setGoalStates()
-     * so that you can pass those into drive().
+     * Returns the goal states that were previously set by {@link
+     * #setGoalStates(SwerveModuleState[]) setGoalStates()} so that you can
+     * pass those into {@link #drive(SwerveModuleState[]) drive()}.
+     *
      * @return Returns the goal states that were passed into setGoalStates().
      */
     public SwerveModuleState[] getGoalStates() {
@@ -247,7 +249,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * @return The states.
      */
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
-        double absoluteAngleRadians = 0 * Math.PI/ 180;
+        double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
         return new SwerveModuleState[] {
             new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians)),
             new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians)),
