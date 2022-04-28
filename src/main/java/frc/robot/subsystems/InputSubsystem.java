@@ -198,7 +198,7 @@ public class InputSubsystem extends SubsystemBase {
         // } else if (controllers[0] == controllers[1]) {
             //System.out.printf("WARNING: Driver and Auxiliary controller are the same.  Is there only one controller plugged in?");
         } else {
-            // controllers[1] = controllers[0];
+            controllers[1] = controllers[0];
             String driverName = (controllers[0] == null ? "(null)" : controllers[0].getName());
             String auxName = (controllers[1] == null ? "(null)" : controllers[1].getName());
             int driverId = controllers[0].hashCode();
@@ -341,9 +341,17 @@ public class InputSubsystem extends SubsystemBase {
 
             // Allow the drive controller to control the overall output of the
             // SwerveDriveSubsystem.
-            frontBack += controllers[DRIVE_CONTROLLER_INDEX].getLeftY();
-            leftRight += controllers[DRIVE_CONTROLLER_INDEX].getLeftX();
-            rotation += controllers[DRIVE_CONTROLLER_INDEX].getRightX();
+            if (controllers[DRIVE_CONTROLLER_INDEX].getName() == "Logitech Extreme 3D") {
+                // The joystick mappings are entirely different -- twist the joystick to rotate.
+                frontBack += controllers[DRIVE_CONTROLLER_INDEX].getRawAxis(2);
+                leftRight += controllers[DRIVE_CONTROLLER_INDEX].getRawAxis(1);
+                rotation += controllers[DRIVE_CONTROLLER_INDEX].getRawAxis(4); // This does not seem to want to work!
+            } else {
+                // Normal XBox controllers.
+                frontBack += controllers[DRIVE_CONTROLLER_INDEX].getLeftY();
+                leftRight += controllers[DRIVE_CONTROLLER_INDEX].getLeftX();
+                rotation += controllers[DRIVE_CONTROLLER_INDEX].getRightX();
+            }
         }
 
         frontBack = deadzoneScale(frontBack, Constants.JOYSTICK_DEAD_ZONE);

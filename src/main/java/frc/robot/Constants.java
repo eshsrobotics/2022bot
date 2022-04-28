@@ -161,7 +161,9 @@ public final class Constants {
         public static final String[] KNOWN_CONTROLLER_NAMES = {
                 "Logitech Dual Action",              // We can't find this in the lab
                 "Controller (Xbox One For Windows)", // An actual XBox controller
-                "Pro Controller"                     // Nintendo Switch controller
+                "Pro Controller",                    // Brandon's Nintendo Switch Pro Controller
+                "Logitech Extreme 3D",               // Our big gaming joysticks
+                "Wireless Gamepad"                   // Brandon's Nintendo Switch Pro Controller (yes, it has two names)
         };
 
         public static final String[] DRIVE_CONTROLLER_NAME_PRIORITY = {
@@ -170,7 +172,7 @@ public final class Constants {
                 "Controller (Xbox One for Windows)",
 
                 // Jacob's Black XBox Controller
-                "Bluetooth XINPUT compatible input device"
+                "Bluetooth XINPUT compatible input device",
         };
 
         public static final String[] AUXILARY_CONTROLLER_NAME_PRIORITY = {
