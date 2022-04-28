@@ -50,6 +50,23 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     /**
      * Converts inputs from PWM into dutyCycles between zero and one.
+     *
+     * <p>"Inputs from PWM?  What do you mean?"</p>
+     *
+     * <p>Well, we abandoned using {@link
+     * com.revrobotics.SparkMaxRelativeEncoder REVLib's built-in encoders}
+     * this year because we were tired of their quirk where they would
+     * consider the pivot motor's current position at power-on to be the zero
+     * position.  We wanted an absolute encoder rather than a relative one!
+     * So we opted to purchase four break-out boards that would directly
+     * convert encoder data from the Mark III swerve modules
+     * <em>themselves</em> into PWM signals, and then we soldered wires to
+     * send those signals into the RoboRIO's DIO ports.</p>
+     *
+     * <p>The {@link DutyCycle} objects help to interpret those PWM numbers as
+     * a number between 0 and 1; these numbers are <strong>the absolute
+     * angle</strong> of the swerve modules, and do not change when the robot
+     * is rebooted.</p>
      */
     private List<DutyCycle> dutyCycles;
 
@@ -97,7 +114,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             Collections.addAll(pivotMotors, new CANSparkMax[4]);
             Collections.addAll(speedMotors, new CANSparkMax [4]);
             Collections.addAll(reversalFlags, new Boolean[] { false, false, false, false });
-            // reversalFlags.set(Constants.FRONT_LEFT, true);
             reversalFlags.set(Constants.FRONT_RIGHT, true);
             reversalFlags.set(Constants.BACK_RIGHT, true);
             Collections.addAll(dutyCycles, new DutyCycle[4]);
@@ -126,6 +142,8 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 // The conversion factor translates rotations of the pivot motor to
                 // rotations of the swerve wheel.  Doing this allows us to pass
                 // whole rotations into CANEncoder.setReference().
+                //
+                // TODO: Remove.  We aren't using the built-in encoders in the Spark MAX anymore.
                 m.getEncoder().setPositionConversionFactor(1 / Constants.WHEEL_TURN_RATIO);
             });
 
@@ -176,6 +194,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 pidController.setIntegratorRange(-2.0, 2.0);
 
                 pidControllers.add(pidController);
+
             } catch (Exception e) {
                 System.out.printf("Could not get pid controller: %s\n", e.getMessage());
                 e.printStackTrace();
@@ -183,7 +202,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         }
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-
         for (int j = 0; j < 4; j++) {
             String s = Constants.CORNER_NAME_ABBREVS[j];
             entries.set(j + 0, shuffleboardTab.add(String.format("%s delta", s), 0).getEntry());
@@ -195,7 +213,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
     /**
      * Stores a new direction for the swerve modules to go in.
-     * You can pass these values into drive() using getGoalStates().
+     *
+     * <p>You can pass
+     * these values into {@link #drive(SwerveModuleState[]) drive()} using
+     * {@link #getGoalStates()}.</p>
      *
      * @param newGoalStates New shopping cart angles and speeds that you want.
      */
@@ -204,8 +225,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
     }
 
     /**
-     * Returns the goal states that were previously set by setGoalStates()
-     * so that you can pass those into drive().
+     * Returns the goal states that were previously set by {@link
+     * #setGoalStates(SwerveModuleState[]) setGoalStates()} so that you can
+     * pass those into {@link #drive(SwerveModuleState[]) drive()}.
+     *
      * @return Returns the goal states that were passed into setGoalStates().
      */
     public SwerveModuleState[] getGoalStates() {
@@ -217,7 +240,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * are aligned at the given absolute angle, regardless of where the the wheels were
      * when the robot was turned on.
      *
-     * All four modulus will have a speed of 0.
+     * All four modules will have a speed of 0.
      *
      * @param absoluteAngleDegrees The desired angle for all the swerve modules.
      *                             An angle of 0 points all modules forward, and is the
@@ -226,16 +249,12 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
      * @return The states.
      */
     public SwerveModuleState[] reset(double absoluteAngleDegrees) {
-        double absoluteAngleRadians = 0 * Math.PI/ 180;
+        double absoluteAngleRadians = absoluteAngleDegrees * Math.PI/ 180;
         return new SwerveModuleState[] {
-            new SwerveModuleState(0,
-                                  new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(0,
-                                  new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(0,
-                                  new Rotation2d(absoluteAngleRadians)),
-            new SwerveModuleState(0,
-                                  new Rotation2d(absoluteAngleRadians))
+            new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians)),
+            new SwerveModuleState(0, new Rotation2d(absoluteAngleRadians))
         };
     }
 
@@ -244,8 +263,10 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
         // Translates shopping cart speeds and angles into motion.
         for (int i = 0; i < swerveModuleStates.length; i++)  {
-            // The absolute position of the swerve wheels.  We need the displacement offsets
-            // in order to force the wheels into the angles we actually want.
+
+            // The absolute position of the swerve wheels.  We need the
+            // displacement offsets in order to force the wheels into the
+            // angles we actually want.
             double currentAbsoluteAngle = dutyCycles.get(i).getOutput() * 360;
             double displacementAngleDegrees = Constants.DISPLACEMENT_ANGLES[i];
             currentAbsoluteAngle = (currentAbsoluteAngle - (displacementAngleDegrees - 180)) % 360 ;
@@ -260,6 +281,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             double speed = state.speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
             if (true) {
+                // Make the current drive motor go vroom.
                 speedMotors.get(i).set(speed);
             }
             entries.get(i + 12).setDouble(speedMotors.get(i).get());
@@ -272,8 +294,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             double rotations = state.angle.getDegrees() + 180.0;
             entries.get(i + 8).setDouble(rotations);
 
-
-
             // Tells us the distance between our desired angle from the controller and our current pivot motor angle, in degrees.
             double deltaDegrees = pidControllers.get(i).calculate(currentAbsoluteAngle, rotations);
             entries.get(i + 0).setDouble(deltaDegrees);
@@ -281,6 +301,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
                 if (true) {
+                    // Make the current pivot motor go vroom.
                     final double MAX_TURNING_RATE = 1.0;
                     pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
                 }
