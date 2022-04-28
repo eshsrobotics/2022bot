@@ -163,7 +163,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /**
      * Set the absolute hood angle, like a servo, zero is the bottom of where the hood could go and 1 one is the top of where the hood could go
-     * 
+     *
      * @param angle
      */
     public void setHoodAngle(double angle) {
@@ -241,7 +241,7 @@ public class ShooterSubsystem extends SubsystemBase {
         currentHoodIncrement = 0;
         System.out.printf("CurrentPosition = %.1f.  Increment set to %.1f.", currentHoodPosition, currentHoodIncrement);
     }
-    
+
 
     /**
      * Sets the part of the shooter turntable's speed that is governed by human

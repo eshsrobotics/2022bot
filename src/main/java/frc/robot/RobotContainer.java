@@ -74,10 +74,10 @@ public class RobotContainer {
 
     defaultShootingTrajectoryCommand = new RunCommand(() -> {
 
-      // Using a placeholder value for now untill an accurate value is found
+      // Using a placeholder value for now untill an accurate value is found. Shoot cargo from edge of the tarmak.
       shooterSubsystem.setFlyWheelSpeed(-0.3);
 
-      // Using a placeholder value for now untill an accurate value is found
+      // Using a placeholder value for now untill an accurate value is found. Shoot cargo from edge of the tarmak.
       shooterSubsystem.setHoodAngle(0.9);
 
     }, shooterSubsystem);

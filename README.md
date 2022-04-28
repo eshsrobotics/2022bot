@@ -149,7 +149,7 @@ Motor distribution is as follows:
 ### Digital IO (DIO) Port Assignments ###
 0. Front left pivot motor breakoutboard (SparkMax CanBus5)
 1. Back left pivot motor breakoutboard (SparkMax CanBus6)
-2. Back right pivot motor breakoutboard (SparkMax CanBus7)
+2. Back right pivot motor breakoutboard (SparkMax CanBus7, CHANGED CanBus 15)
 3. Front right pivot motor breakoutboard (SparkMax CanBus8)
 4. Turret limit switch
 5. Indexer break-beam ball proximity sensor

@@ -175,10 +175,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
                 //   value suggests a correction that is too large, we say "no thank you" and ignore it.
                 pidController.setIntegratorRange(-2.0, 2.0);
 
-
-                // Integrated encoder is the feedback device the controller uses by default.
-                // pidController.setFeedbackDevice(pivotMotor.getEncoder());
-
                 pidControllers.add(pidController);
             } catch (Exception e) {
                 System.out.printf("Could not get pid controller: %s\n", e.getMessage());
@@ -187,10 +183,6 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
         }
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-        // shuffleboardTab.addNumber("fLAltEnc", () -> pivotMotors.get(Constants.FRONT_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        // shuffleboardTab.addNumber("fRAltEnc", () -> pivotMotors.get(Constants.FRONT_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        // shuffleboardTab.addNumber("bLAltEnc", () -> pivotMotors.get(Constants.BACK_LEFT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
-        // shuffleboardTab.addNumber("bRAltEnc", () -> pivotMotors.get(Constants.BACK_RIGHT).getAlternateEncoder(Constants.SRX_MAG_ENCODER_CLICKS_PER_REVOLUTION).getPosition());
 
         for (int j = 0; j < 4; j++) {
             String s = Constants.CORNER_NAME_ABBREVS[j];
@@ -267,7 +259,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
             SwerveModuleState state = swerveModuleStates[i];
             double speed = state.speedMetersPerSecond /
                 Constants.ROBOT_MAXIMUM_SPEED_METERS_PER_SECOND;
-            if (i == 0) {
+            if (true) {
                 speedMotors.get(i).set(speed);
             }
             entries.get(i + 12).setDouble(speedMotors.get(i).get());
@@ -288,7 +280,7 @@ public class SparkMaxSwerveDriver implements SwerveDriver {
 
             if (!pidControllers.get(i).atSetpoint()) {
                 // Percent of the distance we want to rotate relative to our desired degrees in this loop
-                if (i == 0) {
+                if (true) {
                     final double MAX_TURNING_RATE = 1.0;
                     pivotMotors.get(i).set((deltaDegrees / 180) * MAX_TURNING_RATE);
                 }
